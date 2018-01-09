@@ -1,0 +1,47 @@
+:root {
+	--text: #cfcfcf;
+	--bkg-primary: #080f1b;
+	--bkg-secondary: #12223a;
+	--bkg-tertiary: #1c3459;
+}
+
+body {
+	background: var(--bkg-primary);
+	color: var(--text);
+	margin: 0;
+	margin-top: 64px;
+}
+
+header {
+	height: 64px;
+	top: 0;
+	left: 0;
+	right: 0;
+	position: fixed;
+	background: var(--bkg-secondary);
+	display: flex;
+	justify-content: space-between;
+}
+
+#logo {
+	font: 30px Righteous, sans-serif;
+	padding-left: 18px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+#hamburger-menu {
+	padding-right: 15px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+#hamburger-menu svg {
+	cursor: pointer;
+}
+
+#hamburger-menu svg g {
+	fill: var(--text);
+}
