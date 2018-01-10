@@ -1,11 +1,11 @@
 :root {
 	--text: #333333;
-	--bkg-primary: #fafaff;
-	--bkg-secondary: #d3d3d8;
-	--bkg-tertiary: #b1b1bd;
+	--bkg-primary: #fafafa;
+	--bkg-secondary: #d3d3d3;
+	--bkg-tertiary: #b1b1b1;
 
-	--accent-dark: #34b3a1;
-	--accent-light: #47cac2;
+	--accent-dark: #08816f;
+	--accent-light: #34b3a1;
 }
 
 body {
@@ -49,10 +49,12 @@ header {
 
 #hamburger-menu svg g {
 	fill: var(--accent-dark);
+	transition-duration: 0.4s;
 }
 
-#hamburger-menu svg:hover g {
+#hamburger-menu svg:active g {
 	fill: var(--accent-light);
+	transition-duration: 0s;
 }
 
 h1, h2, h3, h4 {
@@ -69,10 +71,19 @@ button {
 	outline: none;
 	padding: 15px;
 	background: var(--accent-dark);
-	transition: scale 0.2s, background 0.2s;
+	transition: all 1s;
+	border: none;
+	color: var(--bkg-primary);
+	font: 1rem 'Open Sans';
+	cursor: pointer;
+	position: relative;
 }
 
-button:active {
-	transform: scale(0.8);
-	background: var(--accent-light);
+button::after {
+	position: absolute;
+	content: '';
+	display: block;
+	position: absolute;
+	width: 100%;
+	
 }
