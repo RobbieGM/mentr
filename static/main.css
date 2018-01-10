@@ -1,14 +1,18 @@
 :root {
-	--text: #cfcfcf;
-	--bkg-primary: #080f1b;
-	--bkg-secondary: #12223a;
-	--bkg-tertiary: #1c3459;
+	--text: #333333;
+	--bkg-primary: #fafaff;
+	--bkg-secondary: #d3d3d8;
+	--bkg-tertiary: #b1b1bd;
+
+	--accent-dark: #34b3a1;
+	--accent-light: #47cac2;
 }
 
 body {
 	background: var(--bkg-primary);
 	color: var(--text);
 	margin: 0;
+	font-family: 'Open Sans', sans-serif;
 	margin-top: 64px;
 }
 
@@ -25,14 +29,15 @@ header {
 
 #logo {
 	font: 30px Righteous, sans-serif;
-	padding-left: 18px;
+	padding-left: 16px;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
+	color: var(--accent-dark);
 }
 
 #hamburger-menu {
-	padding-right: 15px;
+	padding-right: 16px;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -43,5 +48,31 @@ header {
 }
 
 #hamburger-menu svg g {
-	fill: var(--text);
+	fill: var(--accent-dark);
+}
+
+#hamburger-menu svg:hover g {
+	fill: var(--accent-light);
+}
+
+h1, h2, h3, h4 {
+	margin-top: 0;
+	font-family: 'Zilla Slab', sans-serif;
+}
+
+main {
+	padding: calc(10px + 5vw);
+}
+
+button {
+	appearance: none;
+	outline: none;
+	padding: 15px;
+	background: var(--accent-dark);
+	transition: scale 0.2s, background 0.2s;
+}
+
+button:active {
+	transform: scale(0.8);
+	background: var(--accent-light);
 }
