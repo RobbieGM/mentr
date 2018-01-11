@@ -70,20 +70,31 @@ button {
 	appearance: none;
 	outline: none;
 	padding: 15px;
-	background: var(--accent-dark);
-	transition: all 1s;
+	background-color: var(--accent-dark);
+	background-image: radial-gradient(circle at center, var(--accent-light) 20%, transparent 0%);
+	background-size: 0;
+	background-position: center;
+	background-repeat: no-repeat;
 	border: none;
 	color: var(--bkg-primary);
 	font: 1rem 'Open Sans';
 	cursor: pointer;
+	white-space: nowrap;
 	position: relative;
+	overflow: hidden;
 }
 
-button::after {
-	position: absolute;
-	content: '';
-	display: block;
-	position: absolute;
-	width: 100%;
-	
+button:active {
+	animation: button-flash 0.15s;
+	animation-fill-mode: forwards;
+	animation-timing-function: cubic-bezier(0, 0.55, 0.43, 1);
+}
+
+@keyframes button-flash {
+	0% {
+		background-size: 0;
+	}
+	100% {
+		background-size: 500%;
+	}
 }
