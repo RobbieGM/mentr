@@ -4,8 +4,20 @@
 	--bkg-secondary: #d3d3d3;
 	--bkg-tertiary: #b1b1b1;
 
-	--accent-dark: #08816f;
-	--accent-light: #34b3a1;
+	--accent-dark: #00867d;
+	--accent-light: #4db6ac;
+}
+ 
+* {
+	-webkit-tap-highlight-color: transparent;
+	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+*:focus {
+	outline: none !important;
+}
+button, a, nav, header {
+	-webkit-user-select: none;
+	user-select: none;
 }
 
 body {
@@ -14,6 +26,7 @@ body {
 	margin: 0;
 	font-family: 'Open Sans', sans-serif;
 	margin-top: 64px;
+	min-width: 100%;
 }
 
 header {
@@ -22,9 +35,10 @@ header {
 	left: 0;
 	right: 0;
 	position: fixed;
-	background: var(--bkg-secondary);
+	background: var(--accent-light);
 	display: flex;
 	justify-content: space-between;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
 #logo {
@@ -33,7 +47,7 @@ header {
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
-	color: var(--accent-dark);
+	color: var(--bkg-primary);
 }
 
 #hamburger-menu {
@@ -48,13 +62,103 @@ header {
 }
 
 #hamburger-menu svg g {
-	fill: var(--accent-dark);
-	transition-duration: 0.4s;
+	fill: var(--bkg-primary);
+	transition-duration: 0.3s;
 }
 
 #hamburger-menu svg:active g {
-	fill: var(--accent-light);
+	fill: var(--bkg-secondary);
 	transition-duration: 0s;
+}
+
+nav {
+	position: fixed;
+	width: 35%;
+	min-width: 250px;
+	max-width: 400px;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	z-index: 10;
+	background: #ffffff;
+	box-shadow: none;
+	transform: translateX(-100%);
+	transition: transform 0.3s, box-shadow 0.3s;
+	transition-timing-function: cubic-bezier(0.4, 0, 1, 1);;
+}
+
+nav.active {
+	transform: none;
+	box-shadow: 0 0 26px 0 rgba(0, 0, 0, 0.3);
+	transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+}
+
+nav a {
+	display: flex;
+	align-items: center;
+	padding: 10px;
+	box-sizing: border-box;
+	width: 100%;
+	height: 50px;
+	line-height: 30px;
+	font-size: 1rem;
+	text-decoration: none;
+	color: var(--text);
+	vertical-align: center;
+	background: transparent;
+	transition: background 0.2s;
+}
+
+nav a:target:active {
+	background: #484848;
+}
+
+nav a:target {
+	background: var(--text);
+	color: var(--bkg-primary);
+}
+
+nav a:target img {
+	filter: brightness(99999%);
+}
+
+nav a:active {
+	background: rgba(0, 0, 0, 0.156);
+	transition: none;
+}
+
+nav a img {
+	height: 100%;
+	margin-right: 15px;
+}
+
+#modal-overlay {
+	z-index: 9;
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	opacity: 0;
+	visibility: hidden;
+	background: #000;
+	transition: all 0.15s;
+}
+
+nav.active + #modal-overlay {
+	opacity: 0.5;
+	visibility: visible;
+}
+
+a#profile {
+	height: 75px;
+	font-size: 1.5rem;
+	background: var(--accent-dark);
+	color: var(--bkg-primary);
+}
+
+a#profile img {
+	filter: brightness(9999%);
 }
 
 h1, h2, h3, h4 {
@@ -66,35 +170,65 @@ main {
 	padding: calc(10px + 5vw);
 }
 
-button {
-	appearance: none;
+input[type='text'] {
 	outline: none;
-	padding: 15px;
-	background-color: var(--accent-dark);
-	background-image: radial-gradient(circle at center, var(--accent-light) 20%, transparent 0%);
-	background-size: 0;
-	background-position: center;
-	background-repeat: no-repeat;
+	border: 2px solid #777777;
+	display: block;
+	font-size: 1rem;
+	padding: 0.4em;
+	margin: 3px auto;
+	transition: border 0.2s;
+}
+
+input[type='text']:focus {
+	border: 2px solid var(--accent-light);
+}
+
+button, a.button {
+	appearance: none;
+	display: inline-flex;
+	outline: none;
+	background: var(--accent-light);
 	border: none;
 	color: var(--bkg-primary);
-	font: 1rem 'Open Sans';
+	font: 500 1rem 'Open Sans';
 	cursor: pointer;
+	border-radius: 2px;
 	white-space: nowrap;
-	position: relative;
-	overflow: hidden;
+	min-height: 48px;
+	min-width: 112px;
+	line-height: 1rem;
+	text-align: center;
+	padding: 8px;
+	margin: 8px;
+	text-transform: uppercase;
+	transition: box-shadow 0.3s, background 0.3s, color 0.3s;
+	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	transform-origin: bottom;
+	box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12), 0 3px 1px -2px rgba(0,0,0,0.2);
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	text-decoration: none;
 }
 
-button:active {
-	animation: button-flash 0.15s;
-	animation-fill-mode: forwards;
-	animation-timing-function: cubic-bezier(0, 0.55, 0.43, 1);
+button.flat, a.button.flat {
+	color: var(--accent-light);
+	background: transparent;
+	box-shadow: none;
 }
 
-@keyframes button-flash {
-	0% {
-		background-size: 0;
-	}
-	100% {
-		background-size: 500%;
-	}
+button + button, a.button + a.button, button + a.button, a.button + button {
+	margin-left: 0;
+}
+
+button:active, a.button:active {
+	background: var(--accent-dark);
+	transition: box-shadow 0.05s;
+	box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.3);
+}
+
+button.flat:active, a.button.flat:active {
+	color: var(--accent-dark);
+	background: rgba(0, 0, 0, 0.156);
 }
