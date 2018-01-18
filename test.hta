@@ -1,0 +1,54 @@
+<html>
+	<head>
+		<meta http-equiv="x-ua-compatible" content="ie=9"/>
+		<HTA:Application
+		id="HelloExample"
+		Border="none"
+		WindowState="maximize"
+		SysMenu="no"
+		Caption="no"
+		InnerBorder="no"
+		Scroll="no"
+		ShowInTaskbar="no"/>
+		<title>HTA - Hello World</title>
+		<style>
+		body {
+			margin: 0;
+			background-color: black;
+		}
+		#bkg {
+			position: absolute;
+			top: 0;
+			left: 50%;
+			bottom: 0;
+			-ms-transform: translate(-50%, 0);
+			transform: translate(-50%, 0);
+			height: 100%;
+			opacity: 0.4;
+		}
+		#dialog {
+			background: #e6e6e6;
+			border: 1px solid #0078d7;
+			width: 456px;
+			height: 316px;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			-ms-transform: translate(-50%, -50%);
+			transform: translate(-50%, -50%);
+		}
+		#top-bar {
+		}
+		#close {
+			width: 44px;
+			height: 32px;
+		}
+		</style>
+	</head>
+	<body>
+		<img id="bkg" src="file://C:\Users\admin\Desktop\default.png"/>
+		<div id="dialog" onclick="self.close()">
+			<div id="top-bar"></div>
+		</div>
+	</body>
+</html>
