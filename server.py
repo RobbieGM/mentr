@@ -18,7 +18,7 @@ def login_required(func):
         if 'session_id' in cp.request.cookie and cp.request.cookie['session_id'].value in users:
             return func(*args, **kwargs)
         else:
-            raise cp.HTTPRedirect('/')
+            raise cp.HTTPRedirect('/?show_login=true')
     return proxy_func
 
 class User(object):
@@ -138,11 +138,11 @@ def index_static(f, require_login=False):
     if require_login:
         @cp.expose
         @login_required
-        def wrapper(self):
-            return cp.lib.static
+        def wrapper(self, **params):
+            return cp.lib.static.serve_file(cwd + '/static/' + f)
     else:
         @cp.expose
-        def wrapper(self):
+        def wrapper(self, **params):
             return cp.lib.static.serve_file(cwd + '/static/' + f)
     
     return wrapper
