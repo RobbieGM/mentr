@@ -2,7 +2,7 @@
 	<head>
 		<meta http-equiv="x-ua-compatible" content="ie=9"/>
 		<HTA:Application
-		id="HelloExample"
+		id="UAC"
 		Border="none"
 		WindowState="maximize"
 		SysMenu="no"
@@ -10,12 +10,17 @@
 		InnerBorder="no"
 		Scroll="no"
 		ShowInTaskbar="no"/>
-		<title>User Account Control</title>
+		<title>Test</title>
 		<style>
 		body {
 			margin: 0;
 			background-color: black;
 			font-family: "Segoe UI";
+			color: black;
+			cursor: default;
+			-ms-user-select: none;
+			-webkit-user-select: none;
+			user-select: none;
 		}
 		#bkg {
 			position: absolute;
@@ -29,7 +34,7 @@
 		}
 		#dialog {
 			background: #e6e6e6;
-			border: 1px solid #0078d7;
+			border: 1px solid #1855b2;
 			width: 456px;
 			height: 316px;
 			position: absolute;
@@ -39,23 +44,50 @@
 			transform: translate(-50%, -50%);
 		}
 		#top-bar {
-			height: 32px;
+			height: 31px;
+			line-height: 28px;
+			font-size: 12px;
 			background: #76b9ee;
+			padding-left: 23px;
 		}
 		#close {
+			font-weight: 100;
 			width: 44px;
-			height: 32px;
+			height: 31px;
 			text-align: center;
+			float: right;
+			line-height: 30px;
+			font-size: 15px;
+			transition-duration: 0.2s;
+		}
+		#close:hover {
+			transition-duration: 0.05s;
 			color: white;
+			background: #e81024;
+		}
+		#close:active {
+			background: #f17079;
+		}
+		h1 {
+			font: 400 20px "Segoe UI", sans-serif;
+			margin: 0;
+			padding-left: 20px;
+			padding-right: 20px;
+			background: #76b9ee;
+			padding-bottom: 14px;
 		}
 		</style>
 	</head>
 	<body>
-		<img id="bkg" src="http://localhost:8000/CachedImage_1280_1024_POS4.jpg"/>
+		<img id="bkg" src="C:\Users\1moorer\Documents\mentr\CachedImage_1280_1024_POS4.jpg"/>
 		<div id="dialog" onclick="self.close()">
 			<div id="top-bar">
 				<span id="title">User Account Control</span>
-				<span id="close">&times;</span>
+				<span id="close" onclick="self.close()">&#10005;</span>
+			</div>
+			<h1>Do you want to allow this app to make changes to your device?</h1>
+			<div id="app">
+				
 			</div>
 		</div>
 	</body>
