@@ -11,6 +11,11 @@
 		<meta name='mobile-web-app-capable' content='yes'/>
 		<meta name='theme-color' content='#34b3a1'/>
 		<script src='/static/main.js'></script>
+		<script>
+			if (location.href.includes('show_login=true')) {
+				toast('Please login first');
+			}
+		</script>
 		<style>
 		main {
 			text-align: center;
@@ -29,8 +34,6 @@
 			<a href='/about/#about' id='about'><img src='/static/ic_info_black_24px.svg'/>About</a>
 			<a href='/help/#help' id='help'><img src='/static/ic_feedback_black_24px.svg'/>Help &amp; Feedback</a>
 		</nav>
-		<modal>
-		</modal>
 		<div id='modal-overlay' onmousedown='document.getElementById("navbar").classList.remove("active");' ontouchstart='document.getElementById("navbar").classList.remove("active");'></div>
 		<header>
 			<span id='logo'>mentr</span>
@@ -56,5 +59,6 @@
 				<a href='/register' class='button'>Sign Up</a><a href='/login' class='button'>Log In</a>
 			</div>
 		</main>
+		<div id='toast'><span id='toast-message'></span><button class="flat" id="toast-button" onclick='this.parentNode.classList.remove("active")'>OK</button></div>
 	</body>
 </html>

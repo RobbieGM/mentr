@@ -5,6 +5,16 @@ function getCookie(name) {
 function $(id) {
 	return document.getElementById(id);
 }
+function toast(msg, buttonText='OK') {
+	var toast = $('toast');
+	toast.classList.add('active');
+	$('toast-message').innerHTML = msg;
+	$('toast-button').innerHTML = buttonText;
+	if (toast.timeout) {
+		clearTimeout(toast.timeout);
+	}
+	toast.timeout = setTimeout(() => toast.classList.remove('active'), 3000);
+}
 addEventListener('load', function() {
 	$('username').innerHTML = getCookie('username') || 'Logged Out';
 	document.querySelectorAll('nav a').forEach(function(link) {
