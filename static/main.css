@@ -38,7 +38,7 @@ header {
 	background: var(--accent-light);
 	display: flex;
 	justify-content: space-between;
-	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.26);
 }
 
 #logo {
@@ -170,17 +170,19 @@ main {
 	padding: calc(10px + 5vw);
 }
 
-input[type='text'] {
+input[type='text'], input[type='password'] {
 	outline: none;
 	border: 2px solid #777777;
 	display: block;
 	font-size: 1rem;
-	padding: 0.4em;
-	margin: 3px auto;
+	padding: 0.7em;
+	width: 250px;
+	max-width: 90%;
+	margin: 10px auto;
 	transition: border 0.2s;
 }
 
-input[type='text']:focus {
+input[type='text']:focus, input[type='password']:focus {
 	border: 2px solid var(--accent-light);
 }
 

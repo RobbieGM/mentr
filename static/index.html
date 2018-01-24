@@ -12,9 +12,11 @@
 		<meta name='theme-color' content='#34b3a1'/>
 		<script src='/static/main.js'></script>
 		<script>
-			if (location.href.includes('show_login=true')) {
-				toast('Please login first');
-			}
+			addEventListener('load', function() {
+				if (location.href.includes('show_login=true')) {
+					toast('Please login first');
+				}
+			});
 		</script>
 		<style>
 		main {

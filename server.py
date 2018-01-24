@@ -163,13 +163,19 @@ class Root(object):
             success = not (form['first-name'].isspace() or form['last-name'].isspace()) and len(form['graduation-year']) == 4 and form['graduation-year'][3].isdigit()
             if success:
                 verification_email = form['graduation-year'][3] + form['last-name'][:6] + form['first-name'][0] + '@chelsea.k12.mi.us'
-                key = uuid4()
+                key = str(uuid4())
                 verification_link = 'http://0.0.0.0/verify?key=' + key
                 send_html(verification_email, 'Mentr Verification', cwd + '/verification-email.html', first_name=form['first-name'], verification_link=verification_link)
                 return main_page_wrap('<div style="text-align: center"><h1>Success</h1><p>Check your school email (' + verification_email + ') for a verification link.</p></div>')
             else:
                 return main_page_wrap('<div style="text-align: center"><h1>Invalid Input</h1><p>Your form inputs didn\'t make sense to us. Please try again.</p></div>')
 
+    @cp.expose
+    def login(self, **form):
+        if cp.request.method == 'GET':
+            return cp.lib.static.serve_file(cwd + '/static/login.html')
+        elif cp.request.method == 'POST':
+            pass
 WebSocketPlugin(cp.engine).subscribe()
 cp.tools.websocket = WebSocketTool()
 
