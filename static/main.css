@@ -110,16 +110,16 @@ nav a {
 	transition: background 0.2s;
 }
 
-nav a:target:active {
+nav a.target:active {
 	background: #484848;
 }
 
-nav a:target {
+nav a.target {
 	background: var(--text);
 	color: var(--bkg-primary);
 }
 
-nav a:target img {
+nav a.target img {
 	filter: brightness(99999%);
 }
 

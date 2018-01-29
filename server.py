@@ -199,6 +199,7 @@ class Root(object):
             else:
                 u = User(selection[0][0])
                 cp.response.cookie['session_id'] = u.session_id
+                cp.response.cookie['username'] = u.username
                 raise cp.HTTPRedirect('/forum')
 
 

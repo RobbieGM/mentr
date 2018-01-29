@@ -33,5 +33,11 @@ addEventListener('load', function() {
 			$('navbar').classList.remove('active');
 			setTimeout(() => location.assign(link.href), 300);
 		});
+
+		url = str => str.replace(/\/+$/, '');
+
+		if (url(link.getAttribute('href')) == url(location.pathname)) {
+			link.classList.add('target');
+		}
 	});
 });
