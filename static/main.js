@@ -15,6 +15,16 @@ function toast(msg, buttonText='OK') {
 	}
 	toast.timeout = setTimeout(() => toast.classList.remove('active'), 3000);
 }
+
+var socket = new WebSocket('ws://' + location.host + '/socket');
+socket.onmessage = function(received) {
+	var args = received.data.split(':');
+	var cmd = args.shift();
+	if (socket['on' + cmd]) {
+		socket['on' + cmd](args);
+	}
+};
+
 addEventListener('load', function() {
 	$('username').innerHTML = getCookie('username') || 'Logged Out';
 	document.querySelectorAll('nav a').forEach(function(link) {

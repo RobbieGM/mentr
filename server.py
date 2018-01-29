@@ -4,12 +4,14 @@ from ws4py.websocket import WebSocket, EchoWebSocket
 from os import getcwd
 from uuid import uuid4
 import sqlite3
+from threading import Timer
 
 from metaclass import InstanceUnifier
 from mailing import send_html
 
 users = {}
-conn = sqlite3.connect('main.db')
+conn = sqlite3.connect('main.db', check_same_thread=False)
+cur = conn.cursor()
 
 cwd = getcwd()
 
@@ -25,7 +27,7 @@ class User(object):
 
     __metaclass__ = InstanceUnifier
     instances = users
-    primary_key = 'session_token'
+    primary_key = 'session_id'
 
     def __init__(self, username, ip_addr=None):
         self.username = username
@@ -43,11 +45,11 @@ class User(object):
             role = tuple(role)
             print 'Warning: use tuples instead of arrays for role parameter in User.broadcast_to for consistency.'
         try:
-            for session_token in users:
-                if session_token in recipients or recipients == 'all':
-                    for socket in users[session_token].sockets:
-                        if socket.role == role or role == ('all',) or (len(users[session_token].sockets) == 0 and single_socket_override):
-                            is_owned = from_token == session_token
+            for session_id in users:
+                if session_id in recipients or recipients == 'all':
+                    for socket in users[session_id].sockets:
+                        if socket.role == role or role == ('all',) or (len(users[session_id].sockets) == 0 and single_socket_override):
+                            is_owned = from_token == session_id
                             extra = None
                             if signify_owned:
                                 extra = ':owned' if is_owned else ':foreign'
@@ -60,15 +62,16 @@ class User(object):
     @staticmethod
     def get_users_where(**kwargs):
         if len(kwargs) != 1:
-            raise TypeError(
-                'get_users_where takes exactly 1 name/value pair in kwargs (%s given)' % len(kwargs))
+            raise TypeError('get_users_where takes exactly 1 name/value pair in kwargs (%s given)' % len(kwargs))
         key = kwargs.keys()[0]
         val = kwargs[key]
-        selected_users = [users[st] for st in users if getattr(users[st], key) == val]
-        return selected_users
+        for session in users:
+            if getattr(users[session], key) == val:
+                yield users[session]
 
     def logout(self, force=True):
         if force or len(self.sockets) == 0:
+            print 'User logged out'
             self.destruct()
 
     def start_logout_timer(self):
@@ -77,6 +80,7 @@ class User(object):
         self.logout_timer.start()
 
     def on_socket_close(self):
+        print 'Socket closed'
         if len(self.sockets) == 0:
             print 'User ' + self.username + ' has 5 seconds to reconnect'
             self.start_logout_timer()
@@ -89,7 +93,7 @@ class MainWebSocket(WebSocket):
 
     def __init__(self, *args, **kwargs):
         WebSocket.__init__(self, *args, **kwargs)
-        self.session_token = None
+        self.session_id = None
 
     def emit(self, *args):
         self.send(msg(*args), False)
@@ -100,15 +104,15 @@ class MainWebSocket(WebSocket):
 
     @property
     def user(self):
-        return users[self.session_token]
+        return users[self.session_id]
 
     def opened(self):  # IMPORTANT: NEVER SEND MESSAGES WHEN SOCKET HAS JUST OPENED
-        if self.session_token:
+        if self.session_id:
             print 'Socket opened. User: ' + self.user.username
             self.user.sockets.append(self)
 
     def closed(self, code, reason=None):
-        if self.session_token in users:
+        if self.session_id in users:
             self.user.sockets.remove(self)
             self.user.on_socket_close()
         self.destruct()
@@ -147,6 +151,10 @@ def index_static(f, require_login=False):
     
     return wrapper
 
+TEMPLATE = open(cwd + '/static/template.html').read()
+def main_page_wrap(html):
+    return TEMPLATE % html
+
 class Root(object):
     index = index_static('index.html')
     profile = index_static('profile.html', True)
@@ -162,20 +170,55 @@ class Root(object):
         elif cp.request.method == 'POST':
             success = not (form['first-name'].isspace() or form['last-name'].isspace()) and len(form['graduation-year']) == 4 and form['graduation-year'][3].isdigit()
             if success:
-                verification_email = form['graduation-year'][3] + form['last-name'][:6] + form['first-name'][0] + '@chelsea.k12.mi.us'
+                username = form['graduation-year'][3] + form['last-name'][:6] + form['first-name'][0]
+                email = username + '@chelsea.k12.mi.us'
+
                 key = str(uuid4())
                 verification_link = 'http://0.0.0.0/verify?key=' + key
-                send_html(verification_email, 'Mentr Verification', cwd + '/verification-email.html', first_name=form['first-name'], verification_link=verification_link)
-                return main_page_wrap('<div style="text-align: center"><h1>Success</h1><p>Check your school email (' + verification_email + ') for a verification link.</p></div>')
+
+                cur.execute('insert into accounts values (?, ?, ?, ?, ?, ?, ?)', (username, email, form['first-name'], form['last-name'], None, key, 0))
+                conn.commit()
+
+                send_html(email, 'Mentr Verification', cwd + '/verification-email.html', first_name=form['first-name'], verification_link=verification_link)
+                return main_page_wrap('<h1>Success</h1><p>Check your school email (' + email + ') for a verification link.</p>')
             else:
-                return main_page_wrap('<div style="text-align: center"><h1>Invalid Input</h1><p>Your form inputs didn\'t make sense to us. Please try again.</p></div>')
+                return main_page_wrap('<h1>Invalid Input</h1><p>Your form inputs didn\'t make sense to us. Please try again.</p>')
+
 
     @cp.expose
     def login(self, **form):
         if cp.request.method == 'GET':
             return cp.lib.static.serve_file(cwd + '/static/login.html')
         elif cp.request.method == 'POST':
-            pass
+            email = form['username']
+            password = form['password']
+
+            selection = cur.execute('select * from accounts where email = ? or username = ?', (email, email)).fetchall()
+            if len(selection) == 0 or password != selection[0][4] or selection[0][6] == 0:
+                raise cp.HTTPRedirect('/login?incorrect=true')
+            else:
+                u = User(selection[0][0])
+                cp.response.cookie['session_id'] = u.session_id
+                raise cp.HTTPRedirect('/forum')
+
+
+    @cp.expose
+    def verify(self, **query_params):
+        if cp.request.method == 'GET':
+            return cp.lib.static.serve_file(cwd + '/static/account-setup.html')
+        elif cp.request.method == 'POST':
+            key = query_params['key']
+            password = query_params['password']
+            cur.execute('update accounts set is_verified = 1, password = ? where verification_key = ?', (password, key))
+            conn.commit()
+            raise cp.HTTPRedirect('/login')
+
+    @cp.expose
+    @login_required
+    def socket(self):
+        handler = cp.request.ws_handler
+        handler.session_id = cp.request.cookie['session_id'].value
+
 WebSocketPlugin(cp.engine).subscribe()
 cp.tools.websocket = WebSocketTool()
 

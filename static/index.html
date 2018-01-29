@@ -15,6 +15,7 @@
 			addEventListener('load', function() {
 				if (location.href.includes('show_login=true')) {
 					toast('Please login first');
+					location.hash = '';
 				}
 			});
 		</script>

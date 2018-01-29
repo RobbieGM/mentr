@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>mentr - Register</title>
+		<title>mentr - Finish setting up your account</title>
 		<link href='https://fonts.googleapis.com/css?family=Righteous' rel='stylesheet'>
 		<link href='https://fonts.googleapis.com/css?family=Zilla+Slab' rel='stylesheet'>
 		<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,500' rel='stylesheet'>
@@ -13,12 +13,9 @@
 		<meta name='theme-color' content='#34b3a1'/>
 		<script src='/static/main.js'></script>
 		<script>
-			function updateEmail(self) {
-				var firstName = self.form['first-name'].value[0] || '';
-				var lastName = self.form['last-name'].value.slice(0, 6) || '';
-				var graduationYear = self.form['graduation-year'].value[3] || '';
-				document.getElementById('verification-email').innerHTML = (graduationYear + lastName + firstName).toLowerCase();
-			}
+			addEventListener('load', function() {
+				document.getElementsByName('key')[0].value = location.href.split('=')[1];
+			});
 		</script>
 	</head>
 	<body>
@@ -42,16 +39,15 @@
 				</svg>
 			</span>
 		</header>
-		<main style='text-align: center'>
-			<h1>Get Started</h1>
-			<form action='/register' method='post'>
-				<input type='text' name='first-name' placeholder='First name' maxlength='13' onchange='updateEmail(this)' required/>
-				<input type='text' name='last-name' placeholder='Last name' maxlength='13' onchange='updateEmail(this)' required/>
-				<input type='text' name='graduation-year' placeholder='Graduation year' required pattern='20[1-2][0-9]' title='Graduation year (2017-2029)' onchange='updateEmail(this)'/>
-				<div>Verification email: <span id='verification-email'></span>@chelsea.k12.mi.us</div>
-				<button type='submit'>Register</button>
+		<main>
+			<h1>Finish account setup</h1>
+			<p>Please choose a password. Make it memorable, because currently there's no way to recover it if you forget it.</p>
+			<form action='/verify' method='post'>
+				<input type='password' placeholder='xxxxxCb1' name='password'/>
+				<input type='hidden' name='key'/>
+				<button type='submit'>OK</button>
 			</form>
 		</main>
+		<div id='toast'><span id='toast-message'></span><button class="flat" id="toast-button" onclick='this.parentNode.classList.remove("active")'>OK</button></div>
 	</body>
-	<div id='toast'><span id='toast-message'></span><button class="flat" id="toast-button" onclick='this.parentNode.classList.remove("active")'>OK</button></div>
 </html>

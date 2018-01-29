@@ -1,9 +1,10 @@
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from string import Template
 
 def send_html(to, subject, file_path, **format):
-	content = open(file_path).read().format(**format)
+	content = Template(open(file_path).read()).substitute(format)
 
 	msg = MIMEMultipart('alternative')
 	msg['From'] = 'mentr'

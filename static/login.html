@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>mentr - Welcome</title>
+		<title>mentr - Login</title>
 		<link href='https://fonts.googleapis.com/css?family=Righteous' rel='stylesheet'>
 		<link href='https://fonts.googleapis.com/css?family=Zilla+Slab' rel='stylesheet'>
 		<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,500' rel='stylesheet'>
@@ -11,6 +11,14 @@
 		<meta name='mobile-web-app-capable' content='yes'/>
 		<meta name='theme-color' content='#34b3a1'/>
 		<script src='/static/main.js'></script>
+		<script>
+			addEventListener('load', function() {
+				if (location.href.includes('incorrect=true')) {
+					toast('Invalid credentials');
+					history.replaceState('', '', '/login');
+				}
+			});
+		</script>
 	</head>
 	<body>
 		<nav id='navbar'>
@@ -36,8 +44,8 @@
 		<main style='text-align: center'>
 			<h1>Login</h1>
 			<form method='post' action='/login'>
-				<input type='text' placeholder='Username'/>
-				<input type='password' placeholder='Password'/>
+				<input type='text' placeholder='Email or username' name='username'/>
+				<input type='password' placeholder='Password' name='password'/>
 				<button type='submit'>Login</button>
 			</form>
 		</main>

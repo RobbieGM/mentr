@@ -10,6 +10,7 @@
  
 * {
 	-webkit-tap-highlight-color: transparent;
+	touch-action: manipulation;
 	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 *:focus {
@@ -42,7 +43,7 @@ header {
 }
 
 #logo {
-	font: 30px Righteous, sans-serif;
+	font: 30px 'Righteous', sans-serif;
 	padding-left: 16px;
 	display: flex;
 	flex-direction: column;
@@ -168,6 +169,7 @@ h1, h2, h3, h4 {
 
 main {
 	padding: calc(10px + 5vw);
+	text-align: center;
 }
 
 input[type='text'], input[type='password'] {
