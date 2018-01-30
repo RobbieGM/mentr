@@ -16,9 +16,23 @@
 			main {
 				display: flex;
 				padding: 5vw;
+				flex-wrap: wrap;
 			}
 			main article {
+				flex: 1;
+				flex-basis: 400px;
+				padding: 15px;
 				margin: 10px;
+				border: 2px solid var(--bkg-tertiary);
+				background: var(--bkg-secondary);
+				max-height: 200px;
+				text-overflow: ellipsis;
+				overflow-y: hidden;
+				box-sizing: border-box;
+			}
+			main article p {
+				text-align: left;
+				margin: 0;
 			}
 		</style>
 	</head>
@@ -44,10 +58,26 @@
 			</span>
 		</header>
 		<main>
-			<article></article>
-			<article></article>
-			<article></article>
-			<article></article>
+			<article>
+				<details>1moorer</details>
+				<h2>Need help with a project I'm doing with my Dad</h2>
+				<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras bibendum nisl non augue accumsan auctor. Mauris mattis velit quis ligula cursus fermentum. Duis id ante mollis, accumsan metus id, dictum nisi. Phasellus ut tortor et mi vestibulum rhoncus ac vitae elit. Vivamus sed ultrices turpis. Sed eget auctor urna. Sed.</p>
+			</article>
+			<article>
+				<details>8barhitz</details>
+				<h2>Is #WhyYouMatter really necessary?</h2>
+				<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras bibendum nisl non augue accumsan auctor. Mauris mattis velit quis ligula cursus fermentum. Duis id ante mollis, accumsan metus id, dictum nisi. Phasellus ut tortor et mi vestibulum rhoncus ac vitae elit. Vivamus sed ultrices turpis. Sed eget auctor urna. Sed.</p>
+			</article>
+			<article>
+				<details>0dickinm</details>
+				<h2>Statistical analysis of how many freshmen are idiots</h2>
+				<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras bibendum nisl non augue accumsan auctor. Mauris mattis velit quis ligula cursus fermentum. Duis id ante mollis, accumsan metus id, dictum nisi. Phasellus ut tortor et mi vestibulum rhoncus ac vitae elit. Vivamus sed ultrices turpis. Sed eget auctor urna. Sed.</p>
+			</article>
+			<article>
+				<details>9boonec</details>
+				<h2>Best AP classes for college credit?</h2>
+				<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras bibendum nisl non augue accumsan auctor. Mauris mattis velit quis ligula cursus fermentum. Duis id ante mollis, accumsan metus id, dictum nisi. Phasellus ut tortor et mi vestibulum rhoncus ac vitae elit. Vivamus sed ultrices turpis. Sed eget auctor urna. Sed.</p>
+			</article>
 		</main>
 		<div id='toast'><span id='toast-message'></span><button class="flat" id="toast-button" onclick='this.parentNode.classList.remove("active")'>OK</button></div>
 	</body>
