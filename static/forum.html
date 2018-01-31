@@ -23,7 +23,6 @@
 				flex-basis: 400px;
 				padding: 15px;
 				margin: 10px;
-				border: 2px solid var(--bkg-tertiary);
 				background: var(--bkg-secondary);
 				max-height: 200px;
 				text-overflow: ellipsis;
@@ -33,6 +32,40 @@
 			main article p {
 				text-align: left;
 				margin: 0;
+			}
+			main article span {
+				display: block;
+				text-align: right;
+			}
+			#write {
+				transform: translate(-50%, -50%);
+				box-shadow: 0 3px 7px 0 rgba(0, 0, 0, 0.3);
+				min-width: 56px;
+				min-height: 56px;
+				width: 6vw;
+				height: 6vw;
+				border-radius: 50%;
+				background-repeat: no-repeat;
+				position: fixed;
+				right: 0;
+				bottom: 0;
+				background-color: var(--accent-light);
+				background-position: center;
+				background-size: 50%;
+				background-image: url(/static/ic_edit_black_24px.svg);
+				cursor: pointer;
+				transition: all 0.1s;
+			}
+			#write:active {
+				background-color: var(--accent-dark);
+				box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.4);
+				transition: none;
+			}
+			#write.fullscreen {
+				transform: none;
+				width: 100%;
+				background-image: none;
+				border-radius: 0;
 			}
 		</style>
 	</head>
@@ -59,26 +92,27 @@
 		</header>
 		<main>
 			<article>
-				<details>1moorer</details>
+				<span>1moorer - Jan. 18, 2018</span>
 				<h2>Need help with a project I'm doing with my Dad</h2>
 				<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras bibendum nisl non augue accumsan auctor. Mauris mattis velit quis ligula cursus fermentum. Duis id ante mollis, accumsan metus id, dictum nisi. Phasellus ut tortor et mi vestibulum rhoncus ac vitae elit. Vivamus sed ultrices turpis. Sed eget auctor urna. Sed.</p>
 			</article>
 			<article>
-				<details>8barhitz</details>
+				<span>8barhitz - Dec. 2, 2017</span>
 				<h2>Is #WhyYouMatter really necessary?</h2>
 				<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras bibendum nisl non augue accumsan auctor. Mauris mattis velit quis ligula cursus fermentum. Duis id ante mollis, accumsan metus id, dictum nisi. Phasellus ut tortor et mi vestibulum rhoncus ac vitae elit. Vivamus sed ultrices turpis. Sed eget auctor urna. Sed.</p>
 			</article>
 			<article>
-				<details>0dickinm</details>
+				<span>0dickinm - Oct 5. 2017</span>
 				<h2>Statistical analysis of how many freshmen are idiots</h2>
 				<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras bibendum nisl non augue accumsan auctor. Mauris mattis velit quis ligula cursus fermentum. Duis id ante mollis, accumsan metus id, dictum nisi. Phasellus ut tortor et mi vestibulum rhoncus ac vitae elit. Vivamus sed ultrices turpis. Sed eget auctor urna. Sed.</p>
 			</article>
 			<article>
-				<details>9boonec</details>
+				<span>9boonec - Jan. 2, 2018</span>
 				<h2>Best AP classes for college credit?</h2>
 				<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras bibendum nisl non augue accumsan auctor. Mauris mattis velit quis ligula cursus fermentum. Duis id ante mollis, accumsan metus id, dictum nisi. Phasellus ut tortor et mi vestibulum rhoncus ac vitae elit. Vivamus sed ultrices turpis. Sed eget auctor urna. Sed.</p>
 			</article>
 		</main>
+		<div id='write'></div>
 		<div id='toast'><span id='toast-message'></span><button class="flat" id="toast-button" onclick='this.parentNode.classList.remove("active")'>OK</button></div>
 	</body>
 </html>
