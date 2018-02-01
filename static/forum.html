@@ -38,36 +38,69 @@
 				text-align: right;
 			}
 			#write {
-				transform: translate(-50%, -50%);
+				transform: translate(-50%, -50%) scale(1);
 				box-shadow: 0 3px 7px 0 rgba(0, 0, 0, 0.3);
 				min-width: 56px;
 				min-height: 56px;
 				width: 6vw;
 				height: 6vw;
 				border-radius: 50%;
-				background-repeat: no-repeat;
 				position: fixed;
 				right: 0;
 				bottom: 0;
 				background-color: var(--accent-light);
-				background-position: center;
-				background-size: 50%;
 				background-image: url(/static/ic_edit_black_24px.svg);
+				background-repeat: no-repeat;
+				background-size: 50%;
+				background-position: center;
 				cursor: pointer;
-				transition: all 0.1s;
+				transition: all 0.2s;
 			}
 			#write:active {
 				background-color: var(--accent-dark);
 				box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.4);
 				transition: none;
 			}
-			#write.fullscreen {
-				transform: none;
+			#write.overlay-active {
+				transition: all 0.2s;
+				transform: translate(-50%, -50%) scale(0);
+				opacity: 0;
+			}
+			#new-post {
+				opacity: 0;
+				width: 0;
+				height: 0;
+				overflow-x: hidden;
+				overflow-y: hidden;
+				position: fixed;
+				right: 56px;
+				bottom: 56px;
+				transition: all 0.2s;
+				transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+				padding: calc(10px + 5vw);
+				box-sizing: border-box;
+			}
+			#write.overlay-active ~ #new-post {
+				opacity: 1;
 				width: 100%;
-				background-image: none;
-				border-radius: 0;
+				height: calc(100% - 64px);
+				overflow-y: auto;
+				background: var(--bkg-secondary);
+				right: 0;
+				bottom: 0;
+				transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
 			}
 		</style>
+		<script>
+			function disableScroll() {
+				var body = document.body;
+				body.onscroll = body.onmousewheel = body.ontouchmove = e => e.preventDefault();
+			}
+			function enableScroll() {
+				var body = document.body;
+				body.onscroll = body.onmousewheel = body.ontouchmove = null;
+			};
+		</script>
 	</head>
 	<body>
 		<nav id='navbar'>
@@ -112,7 +145,12 @@
 				<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras bibendum nisl non augue accumsan auctor. Mauris mattis velit quis ligula cursus fermentum. Duis id ante mollis, accumsan metus id, dictum nisi. Phasellus ut tortor et mi vestibulum rhoncus ac vitae elit. Vivamus sed ultrices turpis. Sed eget auctor urna. Sed.</p>
 			</article>
 		</main>
-		<div id='write'></div>
-		<div id='toast'><span id='toast-message'></span><button class="flat" id="toast-button" onclick='this.parentNode.classList.remove("active")'>OK</button></div>
+		<div id='write' onclick='this.classList.add("overlay-active"); disableScroll()'></div>
+		<div id='new-post'>
+			<h1>New Post</h1>
+			<input type='text' placeholder='Post title'/>
+			<button onclick='$("write").classList.remove("overlay-active"); enableScroll()'>Cancel</button><button>Post</button>
+		</div>
+		<div id='toast'><span id='toast-message'></span><button class="flat" id="toast-button" onclick='this.parentNode.classList.remove("active");'>OK</button></div>
 	</body>
 </html>
