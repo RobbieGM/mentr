@@ -28,6 +28,8 @@
 				text-overflow: ellipsis;
 				overflow-y: hidden;
 				box-sizing: border-box;
+				transition: background 0.2s;
+				cursor: pointer;
 			}
 			main article p {
 				text-align: left;
@@ -36,6 +38,21 @@
 			main article span {
 				display: block;
 				text-align: right;
+			}
+			main article:active {
+				background: var(--bkg-tertiary);
+				transition: none;
+			}
+			main article.fullscreen {
+				transition: background 0.2s, top 0.2s, left 0.2s, margin 0.2s, width 0.2s, height 0.2s;
+				position: fixed;
+				background: var(--bkg-primary);
+				top: 64px !important;
+				left: 0 !important;
+				width: 100% !important;
+				max-height: 9999px;
+				height: calc(100% - 64px) !important;
+				margin: 0;
 			}
 			#write {
 				transform: translate(-50%, -50%) scale(1);
@@ -61,7 +78,7 @@
 				box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.4);
 				transition: none;
 			}
-			#write.overlay-active {
+			#write.overlay-active, #write.hidden {
 				transition: all 0.2s;
 				transform: translate(-50%, -50%) scale(0);
 				opacity: 0;
@@ -75,17 +92,19 @@
 				position: fixed;
 				right: 56px;
 				bottom: 56px;
+				visibility: hidden;
 				transition: all 0.2s;
 				transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
 				padding: calc(10px + 5vw);
 				box-sizing: border-box;
+				background: var(--bkg-primary);
 			}
 			#write.overlay-active ~ #new-post {
 				opacity: 1;
 				width: 100%;
 				height: calc(100% - 64px);
 				overflow-y: auto;
-				background: var(--bkg-secondary);
+				visibility: visible;
 				right: 0;
 				bottom: 0;
 				transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
@@ -100,6 +119,20 @@
 				var body = document.body;
 				body.onscroll = body.onmousewheel = body.ontouchmove = null;
 			};
+			addEventListener('load', function() {
+				document.body.addEventListener('click', function(e) {
+					var article = e.target;
+					while (article.matches && !article.matches('main article')) {
+						article = article.parentNode;
+					}
+					if (!article.matches || !article.matches('main article:not(.fullscreen)')) return;
+					article.style.top = article.offsetTop - 10 + 'px';
+					article.style.left = article.offsetLeft - 10 + 'px';
+					article.style.width = article.offsetWidth + 'px';
+					article.style.height = article.offsetHeight + 'px';
+					article.classList.add('fullscreen');
+				});
+			});
 		</script>
 	</head>
 	<body>
