@@ -16,6 +16,28 @@ function toast(msg, buttonText='OK') {
 	toast.timeout = setTimeout(() => toast.classList.remove('active'), 3000);
 }
 
+cancelBodyScroll = function(e) {
+	//e.preventDefault();
+	//e.stopPropagation();
+	scrollTo(0, lastBodyScroll);
+};
+var lastBodyScroll;
+
+function disableScroll() {
+	var body = document.body;
+	body.style.overflowY = 'hidden';
+	body.onscroll = body.onmousewheel = body.ontouchmove = cancelBodyScroll;
+	document.body.addEventListener('DOMMouseScroll', cancelBodyScroll);
+	lastBodyScroll = pageYOffset || document.documentElement.scrollTop;
+}
+function enableScroll() {
+	var body = document.body;
+	body.style.overflowY = 'auto';
+	body.onscroll = body.onmousewheel = body.ontouchmove = null;
+	document.body.removeEventListener('DOMMouseScroll', cancelBodyScroll);
+	scrollTo(0, lastBodyScroll);
+}
+
 var socket = new WebSocket('ws://' + location.host + '/socket');
 socket.onmessage = function(received) {
 	var args = received.data.split(':');

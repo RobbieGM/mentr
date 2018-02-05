@@ -16,10 +16,16 @@
 	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
+	-ms-overflow-style: none;
 }
 *:focus {
 	outline: none !important;
 }
+
+::-webkit-scrollbar {
+	display: none;
+}
+
 button, a, nav, header {
 	-webkit-user-select: none;
 	user-select: none;
@@ -39,6 +45,7 @@ header {
 	top: 0;
 	left: 0;
 	right: 0;
+	z-index: 2;
 	position: fixed;
 	background: var(--accent-light);
 	display: flex;
@@ -176,19 +183,21 @@ main {
 	text-align: center;
 }
 
-input[type='text'], input[type='password'] {
+input[type='text'], input[type='password'], textarea {
 	outline: none;
 	border: 2px solid #777777;
 	display: block;
 	font-size: 1rem;
 	padding: 0.7em;
-	width: 250px;
+	width: 280px;
+	box-sizing: border-box;
 	max-width: 90%;
 	margin: 10px auto;
 	transition: border 0.2s;
+	font-family: 'Open Sans', sans-serif;
 }
 
-input[type='text']:focus, input[type='password']:focus {
+input[type='text']:focus, input[type='password']:focus, textarea:focus {
 	border: 2px solid var(--accent-light);
 }
 
@@ -248,7 +257,7 @@ button.flat:active, a.button.flat:active {
 	background: var(--text);
 	position: fixed;
 	bottom: 0;
-	transform: translateX(-50%) translateY(100%);
+	transform: translateX(-50%) translateY(100%) rotate(0.01deg);
 	left: 50%;
 	display: flex;
 	flex-direction: row;
@@ -257,8 +266,8 @@ button.flat:active, a.button.flat:active {
 }
 
 #toast.active {
-	transform: translateX(-50%);
-	transition-timing-function: ease-out;
+	transform: translateX(-50%) translateY(0%) rotate(-0.01deg);
+	transition: ease-out all 0.2s;
 }
 
 #toast-message {

@@ -24,8 +24,7 @@
 				padding: 15px;
 				margin: 10px;
 				background: var(--bkg-secondary);
-				max-height: 200px;
-				text-overflow: ellipsis;
+				max-height: 250px;
 				overflow-y: hidden;
 				box-sizing: border-box;
 				transition: background 0.2s;
@@ -50,9 +49,21 @@
 				top: 64px !important;
 				left: 0 !important;
 				width: 100% !important;
-				max-height: 9999px;
-				height: calc(100% - 64px) !important;
+				display: block !important;
+				max-height: 9999999px;
+				height: calc(100vh - 64px) !important;
 				margin: 0;
+				cursor: auto;
+				-webkit-user-select: text;
+				-moz-user-select: text;
+				-ms-user-select: text;
+				user-select: text;
+			}
+			main article.fullscreen * {
+				-webkit-user-select: text;
+				-moz-user-select: text;
+				-ms-user-select: text;
+				user-select: text;
 			}
 			#write {
 				transform: translate(-50%, -50%) scale(1);
@@ -109,16 +120,11 @@
 				bottom: 0;
 				transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
 			}
+			#new-post {
+				text-align: center;
+			}
 		</style>
 		<script>
-			function disableScroll() {
-				var body = document.body;
-				body.onscroll = body.onmousewheel = body.ontouchmove = e => e.preventDefault();
-			}
-			function enableScroll() {
-				var body = document.body;
-				body.onscroll = body.onmousewheel = body.ontouchmove = null;
-			};
 			addEventListener('load', function() {
 				document.body.addEventListener('click', function(e) {
 					var article = e.target;
@@ -126,13 +132,41 @@
 						article = article.parentNode;
 					}
 					if (!article.matches || !article.matches('main article:not(.fullscreen)')) return;
-					article.style.top = article.offsetTop - 10 + 'px';
-					article.style.left = article.offsetLeft - 10 + 'px';
-					article.style.width = article.offsetWidth + 'px';
-					article.style.height = article.offsetHeight + 'px';
-					article.classList.add('fullscreen');
-				});
+					var pos = article.getBoundingClientRect();
+					// article.style.top = pos.top - 10 + 'px';
+					// article.style.left = pos.left - 10 + 'px';
+					// article.style.width = pos.width + 'px';
+					// article.style.height = pos.height + 'px';
+					// setTimeout(() => article.classList.add('fullscreen'), 5);
+					disableScroll();
+					$('write').classList.add('hidden');
+					var a = document.createElement('article');
+					a.id = 'fullscreen-article';
+					a.innerHTML = article.innerHTML;
+					a.style.top = pos.top - 10 + 'px';
+					a.style.left = pos.left - 10 + 'px';
+					a.style.width = pos.width + 'px';
+					a.style.height = pos.height + 'px';
+					a.style.visibility = 'hidden';
+					setTimeout(() => { a.classList.add('fullscreen'); a.style.visibility = 'visible' }, 40);
+					a.innerHTML += '<button onclick="closeFullscreenArticle();">Close</button>';
+					document.getElementsByTagName('main')[0].appendChild(a);
+					setTimeout(() => { a.style.overflowY = 'auto' }, 200);
+				}); 
 			});
+			function closeFullscreenArticle() {
+				$('write').classList.remove('hidden');
+				var fsa = $('fullscreen-article');
+				var imp = ' !important';
+				['top', 'left', 'width', 'height'].forEach(function(prop) {
+					fsa.style.setProperty(prop, fsa.style.getPropertyValue(prop), 'important');
+				});
+				fsa.style.margin = '10px';
+				fsa.style.overflowY = 'hidden';
+				fsa.style.background = 'var(--bkg-secondary)';
+				setTimeout(() => fsa.remove(), 200);
+				enableScroll();
+			}
 		</script>
 	</head>
 	<body>
@@ -182,7 +216,8 @@
 		<div id='new-post'>
 			<h1>New Post</h1>
 			<input type='text' placeholder='Post title'/>
-			<button onclick='$("write").classList.remove("overlay-active"); enableScroll()'>Cancel</button><button>Post</button>
+			<textarea placeholder='Post content' style='width: 400px; height: 200px'></textarea>
+			<button class='flat' onclick='$("write").classList.remove("overlay-active"); enableScroll()'>Cancel</button><button>Post</button>
 		</div>
 		<div id='toast'><span id='toast-message'></span><button class="flat" id="toast-button" onclick='this.parentNode.classList.remove("active");'>OK</button></div>
 	</body>
