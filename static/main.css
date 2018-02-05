@@ -189,12 +189,14 @@ input[type='text'], input[type='password'], textarea {
 	display: block;
 	font-size: 1rem;
 	padding: 0.7em;
-	width: 280px;
+	width: 400px;
 	box-sizing: border-box;
 	max-width: 90%;
 	margin: 10px auto;
 	transition: border 0.2s;
 	font-family: 'Open Sans', sans-serif;
+	user-select: text;
+	-webkit-user-select: text; /* fixes safari bug where user-select none disables text boxes */
 }
 
 input[type='text']:focus, input[type='password']:focus, textarea:focus {

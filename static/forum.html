@@ -34,9 +34,30 @@
 				text-align: left;
 				margin: 0;
 			}
-			main article span {
-				display: block;
+			main article div {
 				text-align: right;
+				height: 24px;
+				line-height: 24px;
+				margin-bottom: 5px;
+			}
+			main article div img {
+				width: 24px;
+				height: 24px;
+				float: left;
+				opacity: 0;
+				visibility: hidden;
+				transition: opacity 0.2s, background 0.1s, box-shadow 0.1s;
+				border-radius: 50%;
+				cursor: pointer;
+			}
+			main article.fullscreen div img {
+				opacity: 1;
+				visibility: visible;
+			}
+			main article.fullscreen div img:active {
+				background: var(--bkg-secondary);
+				box-shadow: 0 0 0 5px var(--bkg-secondary);
+				transition: opacity 0.2s;
 			}
 			main article:active {
 				background: var(--bkg-tertiary);
@@ -148,8 +169,8 @@
 					a.style.width = pos.width + 'px';
 					a.style.height = pos.height + 'px';
 					a.style.visibility = 'hidden';
+					a.children[0].children[0].addEventListener('click', closeFullscreenArticle);
 					setTimeout(() => { a.classList.add('fullscreen'); a.style.visibility = 'visible' }, 40);
-					a.innerHTML += '<button onclick="closeFullscreenArticle();">Close</button>';
 					document.getElementsByTagName('main')[0].appendChild(a);
 					setTimeout(() => { a.style.overflowY = 'auto' }, 200);
 				}); 
@@ -192,23 +213,23 @@
 		</header>
 		<main>
 			<article>
-				<span>1moorer - Jan. 18, 2018</span>
+				<div><img src='/static/ic_close_black_24px.svg'/><span>1moorer - Jan. 18, 2018</span></div>
 				<h2>Need help with a project I'm doing with my Dad</h2>
 				<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras bibendum nisl non augue accumsan auctor. Mauris mattis velit quis ligula cursus fermentum. Duis id ante mollis, accumsan metus id, dictum nisi. Phasellus ut tortor et mi vestibulum rhoncus ac vitae elit. Vivamus sed ultrices turpis. Sed eget auctor urna. Sed.</p>
 			</article>
 			<article>
-				<span>8barhitz - Dec. 2, 2017</span>
-				<h2>Is #WhyYouMatter really necessary?</h2>
+				<div><img src='/static/ic_close_black_24px.svg'/><span>8barhitz - Dec. 2, 2017</span></div>
+				<h2>Firefox vs. Chrome: my opinion</h2>
 				<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras bibendum nisl non augue accumsan auctor. Mauris mattis velit quis ligula cursus fermentum. Duis id ante mollis, accumsan metus id, dictum nisi. Phasellus ut tortor et mi vestibulum rhoncus ac vitae elit. Vivamus sed ultrices turpis. Sed eget auctor urna. Sed.</p>
 			</article>
 			<article>
-				<span>0dickinm - Oct 5. 2017</span>
-				<h2>Statistical analysis of how many freshmen are idiots</h2>
+				<div><img src='/static/ic_close_black_24px.svg'/><span>0dickinm - Oct 5. 2017</span></div>
+				<h2>Here's why next year's freshmen will be even worse</h2>
 				<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras bibendum nisl non augue accumsan auctor. Mauris mattis velit quis ligula cursus fermentum. Duis id ante mollis, accumsan metus id, dictum nisi. Phasellus ut tortor et mi vestibulum rhoncus ac vitae elit. Vivamus sed ultrices turpis. Sed eget auctor urna. Sed.</p>
 			</article>
 			<article>
-				<span>9boonec - Jan. 2, 2018</span>
-				<h2>Best AP classes for college credit?</h2>
+				<div><img src='/static/ic_close_black_24px.svg'/><span>9boonec - Jan. 2, 2018</span></div>
+				<h2>Best AP classes for an engineering degree?</h2>
 				<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras bibendum nisl non augue accumsan auctor. Mauris mattis velit quis ligula cursus fermentum. Duis id ante mollis, accumsan metus id, dictum nisi. Phasellus ut tortor et mi vestibulum rhoncus ac vitae elit. Vivamus sed ultrices turpis. Sed eget auctor urna. Sed.</p>
 			</article>
 		</main>
@@ -216,9 +237,9 @@
 		<div id='new-post'>
 			<h1>New Post</h1>
 			<input type='text' placeholder='Post title'/>
-			<textarea placeholder='Post content' style='width: 400px; height: 200px'></textarea>
+			<textarea placeholder='Post content' style='height: 200px'></textarea>
 			<button class='flat' onclick='$("write").classList.remove("overlay-active"); enableScroll()'>Cancel</button><button>Post</button>
 		</div>
-		<div id='toast'><span id='toast-message'></span><button class="flat" id="toast-button" onclick='this.parentNode.classList.remove("active");'>OK</button></div>
+		<div id='toast'><span id='toast-message'></span><button class='flat' id='toast-button' onclick='this.parentNode.classList.remove("active");'>OK</button></div>
 	</body>
 </html>
