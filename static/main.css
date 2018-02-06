@@ -4,8 +4,11 @@
 	--bkg-secondary: #d3d3d3;
 	--bkg-tertiary: #b1b1b1;
 
-	--accent-dark: #00867d;
-	--accent-light: #4db6ac;
+	/*--accent-dark: #00867d;
+	--accent-light: #4db6ac;*/
+	--accent-light: #ff4242;
+	--accent-dark: #db1c1c;
+	--accent-lighter: #ffd0d0;
 }
  
 * {
@@ -47,7 +50,7 @@ header {
 	right: 0;
 	z-index: 2;
 	position: fixed;
-	background: var(--accent-light);
+	background: var(--text);
 	display: flex;
 	justify-content: space-between;
 	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.26);
@@ -135,7 +138,7 @@ nav a.target img {
 }
 
 nav a:active {
-	background: rgba(0, 0, 0, 0.156);
+	background: var(--bkg-secondary);
 	transition: none;
 }
 
@@ -165,7 +168,7 @@ nav.active ~ #modal-overlay {
 a#profile {
 	height: 75px;
 	font-size: 1.5rem;
-	background: var(--accent-dark);
+	background: var(--accent-light);
 	color: var(--bkg-primary);
 }
 
@@ -249,7 +252,7 @@ button:active, a.button:active {
 
 button.flat:active, a.button.flat:active {
 	color: var(--accent-dark);
-	background: rgba(0, 0, 0, 0.156);
+	background: var(--bkg-secondary);
 	box-shadow: none;
 }
 
