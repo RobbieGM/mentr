@@ -1,3 +1,32 @@
+/* TODO:
+
+PROGRESSIVE WEB APP
+	- register a service worker (offline access?)
+	- make service worker respond with 200 OK when offline
+	- HTTPS
+	- add android web app manifest
+	- service worker must register manifest start_url
+	- add custom splash screen for web app
+	- address bar should match brand colors (theme_color in manifest)
+PERFORMANCE
+	- render-blocking resources (css: 630ms, js: 600ms)
+		- fix: add defer to scripts
+	- text compression (gzip, deflate)
+ACCESSIBILITY
+	- img alt
+	- html lang (auto-translation)
+BEST PRACTICES
+	- web app manifest short_name must be specified or it will be truncated (e.g., mentr - W...)
+	- try HTTP/2
+	- images must not resize aspect ratio
+
+(Source: Chrome audit)
+*/
+
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:400,500');
+@import url('https://fonts.googleapis.com/css?family=Zilla+Slab');
+@import url('https://fonts.googleapis.com/css?family=Righteous');
+
 :root {
 	--text: #333333;
 	--bkg-primary: #fafafa;
@@ -216,7 +245,7 @@ button, a.button {
 	background: var(--accent-light);
 	border: none;
 	color: var(--bkg-primary);
-	font: 500 1rem 'Open Sans';
+	font: 500 1rem 'Open Sans', sans-serif;
 	cursor: pointer;
 	border-radius: 2px;
 	white-space: nowrap;
