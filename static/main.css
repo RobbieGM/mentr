@@ -99,7 +99,8 @@ nav {
 	box-shadow: none;
 	transform: translateX(-100%);
 	transition: transform 0.3s, box-shadow 0.3s;
-	transition-timing-function: cubic-bezier(0.4, 0, 1, 1);;
+	transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+	-webkit-backface-visibility: hidden;
 }
 
 nav.active {
@@ -200,6 +201,8 @@ input[type='text'], input[type='password'], textarea {
 	font-family: 'Open Sans', sans-serif;
 	user-select: text;
 	-webkit-user-select: text; /* fixes safari bug where user-select none disables text boxes */
+	box-shadow: none;
+	border-radius: 0;
 }
 
 input[type='text']:focus, input[type='password']:focus, textarea:focus {
@@ -252,7 +255,7 @@ button:active, a.button:active {
 
 button.flat:active, a.button.flat:active {
 	color: var(--accent-dark);
-	background: var(--bkg-secondary);
+	background: rgba(0, 0, 0, 0.156);
 	box-shadow: none;
 }
 
