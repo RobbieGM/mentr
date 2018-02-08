@@ -3,189 +3,14 @@
 	<head>
 		<title>mentr - Welcome</title>
 		<link href='/static/main.css' rel='stylesheet'/>
+		<link href='/static/forum.css' rel='stylesheet'/>
 		<link rel='icon' href='/favicon.ico' type='image/x-icon'/>
 		<meta name='viewport' content='width=device-width,user-scalable=no'/>
 		<meta name='mobile-web-app-capable' content='yes'/>
 		<meta name='apple-mobile-web-app-capable' content='yes'/>
 		<meta name='theme-color' content='#34b3a1'/>
 		<script defer src='/static/main.js'></script>
-		<style>
-			main {
-				display: flex;
-				padding: 5vw;
-				flex-wrap: wrap;
-			}
-			main article {
-				flex: 1;
-				flex-basis: 400px;
-				padding: 15px;
-				margin: 10px;
-				background: var(--bkg-secondary);
-				max-height: 250px;
-				overflow-y: hidden;
-				box-sizing: border-box;
-				transition: background 0.2s;
-				cursor: pointer;
-			}
-			main article p {
-				text-align: left;
-				margin: 0;
-			}
-			main article div {
-				text-align: right;
-				height: 24px;
-				line-height: 24px;
-				margin-bottom: 5px;
-			}
-			main article div img {
-				width: 24px;
-				height: 24px;
-				float: left;
-				opacity: 0;
-				visibility: hidden;
-				transition: opacity 0.2s, background 0.1s, box-shadow 0.1s;
-				border-radius: 50%;
-				cursor: pointer;
-			}
-			main article.fullscreen div img {
-				opacity: 1;
-				visibility: visible;
-			}
-			main article.fullscreen div img:active {
-				background: var(--bkg-secondary);
-				box-shadow: 0 0 0 5px var(--bkg-secondary);
-				transition: opacity 0.2s, background 0.05s, box-shadow 0.05s;
-			}
-			main article:active {
-				background: var(--bkg-tertiary);
-				transition: none;
-			}
-			main article.fullscreen {
-				transition: background 0.2s, top 0.2s, left 0.2s, margin 0.2s, width 0.2s, height 0.2s;
-				position: fixed;
-				background: var(--bkg-primary);
-				top: 64px !important;
-				left: 0 !important;
-				width: 100% !important;
-				display: block !important;
-				max-height: 9999999px;
-				height: calc(100vh - 64px) !important;
-				margin: 0;
-				cursor: auto;
-				-webkit-user-select: text;
-				-moz-user-select: text;
-				-ms-user-select: text;
-				user-select: text;
-			}
-			main article.fullscreen * {
-				-webkit-user-select: text;
-				-moz-user-select: text;
-				-ms-user-select: text;
-				user-select: text;
-			}
-			#write {
-				transform: translate(-50%, -50%) scale(1);
-				box-shadow: 0 3px 7px 0 rgba(0, 0, 0, 0.3);
-				min-width: 56px;
-				min-height: 56px;
-				width: 6vw;
-				height: 6vw;
-				border-radius: 50%;
-				position: fixed;
-				right: 0;
-				bottom: 0;
-				background-color: var(--accent-light);
-				background-image: url(/static/ic_edit_black_24px.svg);
-				background-repeat: no-repeat;
-				background-size: 50%;
-				background-position: center;
-				cursor: pointer;
-				transition: all 0.2s;
-			}
-			#write:active {
-				background-color: var(--accent-dark);
-				box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.4);
-				transition: none;
-			}
-			#write.overlay-active, #write.hidden {
-				transition: all 0.2s;
-				transform: translate(-50%, -50%) scale(0);
-				opacity: 0;
-			}
-			#new-post {
-				opacity: 0;
-				width: 0;
-				height: 0;
-				overflow-x: hidden;
-				overflow-y: hidden;
-				position: fixed;
-				right: 56px;
-				bottom: 56px;
-				visibility: hidden;
-				transition: all 0.2s;
-				transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
-				padding: calc(10px + 5vw);
-				box-sizing: border-box;
-				background: var(--bkg-primary);
-			}
-			#write.overlay-active ~ #new-post {
-				opacity: 1;
-				width: 100%;
-				height: calc(100vh - 64px);
-				overflow-y: auto;
-				visibility: visible;
-				right: 0;
-				bottom: 0;
-				transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
-			}
-			#new-post {
-				text-align: center;
-			}
-		</style>
-		<script>
-			addEventListener('load', function() {
-				document.body.addEventListener('click', function(e) {
-					var article = e.target;
-					while (article.matches && !article.matches('main article')) {
-						article = article.parentNode;
-					}
-					if (!article.matches || !article.matches('main article:not(.fullscreen)')) return;
-					var pos = article.getBoundingClientRect();
-					// article.style.top = pos.top - 10 + 'px';
-					// article.style.left = pos.left - 10 + 'px';
-					// article.style.width = pos.width + 'px';
-					// article.style.height = pos.height + 'px';
-					// setTimeout(() => article.classList.add('fullscreen'), 5);
-					disableScroll();
-					$('write').classList.add('hidden');
-					var a = document.createElement('article');
-					a.id = 'fullscreen-article';
-					a.innerHTML = article.innerHTML;
-					a.style.top = pos.top - 10 + 'px';
-					a.style.left = pos.left - 10 + 'px';
-					a.style.width = pos.width + 'px';
-					a.style.height = pos.height + 'px';
-					a.style.visibility = 'hidden';
-					a.children[0].children[0].addEventListener('click', closeFullscreenArticle);
-					setTimeout(() => { a.classList.add('fullscreen'); a.style.visibility = 'visible' }, 40);
-					document.getElementsByTagName('main')[0].appendChild(a);
-					setTimeout(() => { a.style.overflowY = 'auto' }, 200);
-				}); 
-			});
-			function closeFullscreenArticle() {
-				$('write').classList.remove('hidden');
-				var fsa = $('fullscreen-article');
-				var imp = ' !important';
-				['top', 'left', 'width', 'height'].forEach(function(prop) {
-					fsa.style.setProperty(prop, fsa.style.getPropertyValue(prop), 'important');
-				});
-				fsa.style.margin = '10px';
-				fsa.style.overflowY = 'hidden';
-				fsa.style.background = 'var(--bkg-secondary)';
-				setTimeout(() => fsa.remove(), 200);
-				enableScroll();
-			}
-		</script>
+		<script defer src='/static/forum.js'></script>
 	</head>
 	<body>
 		<nav id='navbar'>
@@ -235,7 +60,7 @@
 			<h1>New Post</h1>
 			<input type='text' placeholder='Post title'/>
 			<textarea placeholder='Post content' style='height: 200px'></textarea>
-			<button class='flat' onclick='$("write").classList.remove("overlay-active"); enableScroll()'>Cancel</button><button>Post</button>
+			<button class='flat' onclick='$("write").classList.remove("overlay-active"); enableScroll()'>Cancel</button><button onclick='post()'>Post</button>
 		</div>
 		<div id='toast'><span id='toast-message'></span><button class='flat' id='toast-button' onclick='this.parentNode.classList.remove("active");'>OK</button></div>
 	</body>
