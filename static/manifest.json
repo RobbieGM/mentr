@@ -1,4 +1,7 @@
 {
 	"short_name": "mentr",
-	"name": "mentr"
+	"name": "mentr",
+	"display": "standalone",
+	"icons": [
+	]
 }

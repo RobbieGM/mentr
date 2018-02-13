@@ -40,11 +40,22 @@ function enableScroll() {
 
 var socket = new WebSocket('ws://' + location.host + '/socket');
 socket.onmessage = function(received) {
-	var args = received.data.split(':');
+	console.log(received.data);
+	var args = JSON.parse(received.data);
+	console.log(args);
 	var cmd = args.shift();
 	if (socket['on' + cmd]) {
-		socket['on' + cmd](args);
+		socket['on' + cmd].apply(null, args);
 	}
+};
+socket.sendObject = function(obj) {
+	socket.send(JSON.stringify(obj));
+};
+socket.emit = function(...args) {
+	socket.send(JSON.stringify(args));
+};
+socket.ontoast = function() {
+	toast.apply(null, arguments);
 };
 
 addEventListener('load', function() {

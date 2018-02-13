@@ -202,6 +202,10 @@ a#profile {
 	color: var(--bkg-primary);
 }
 
+a#profile:active {
+	background: var(--accent-dark);
+}
+
 a#profile img {
 	filter: brightness(9999%);
 }

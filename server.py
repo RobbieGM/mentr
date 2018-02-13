@@ -5,6 +5,9 @@ from os import getcwd
 from uuid import uuid4
 import sqlite3
 from threading import Timer
+from cgi import escape
+from json import dumps, loads
+from traceback import print_exc
 
 from metaclass import InstanceUnifier
 from mailing import send_html
@@ -75,6 +78,8 @@ class User(object):
             self.destruct()
 
     def start_logout_timer(self):
+        if hasattr(self, 'logout_timer'):
+            self.logout_timer.cancel()
         self.logout_timer = Timer(10, self.logout, [False])
         self.logout_timer.daemon = True
         self.logout_timer.start()
@@ -96,7 +101,13 @@ class MainWebSocket(WebSocket):
         self.session_id = None
 
     def emit(self, *args):
-        self.send(msg(*args), False)
+        print args
+        print dumps(args)
+        self.send(dumps(args), False)
+
+    @staticmethod
+    def to_msg(self, *args):
+        return dumps(args)
 
     def emit_user_all(self, *args):
         for sock in self.user.sockets:
@@ -121,11 +132,15 @@ class MainWebSocket(WebSocket):
         try:
             print 'Socket data: ' + received.data
             msg = received.data
-            msg_params = msg.split(':')
+            msg_params = loads(msg)
             cmd = msg_params[0]
 
-            def x():
-                pass
+            def echo(*args):
+                self.emit(*args)
+
+            def post(title, content):
+                print title
+                print content
 
             # expose local functions as commands to websocket
             fn_locals = locals()
@@ -231,6 +246,10 @@ cfg = {
     '/static': {
         'tools.staticdir.on': True,
         'tools.staticdir.dir': cwd + '/static',
+        'tools.expires.on': True,
+        'tools.expires.secs': 60 * 60 * 24 * 5,
+        'tools.gzip.on': True,
+        'tools.caching.on': True,
     },
     'global': {
         'server.socket_host': '0.0.0.0',
