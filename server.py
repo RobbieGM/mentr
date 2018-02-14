@@ -8,6 +8,7 @@ from threading import Timer
 from cgi import escape
 from json import dumps, loads
 from traceback import print_exc
+from datetime import datetime
 
 from metaclass import InstanceUnifier
 from mailing import send_html
@@ -139,8 +140,14 @@ class MainWebSocket(WebSocket):
                 self.emit(*args)
 
             def post(title, content):
-                print title
-                print content
+                if title.isspace() or content.isspace():
+                    socket.emit('toast', 'Missing title or content')
+                    return
+                title = escape(title)
+                content = escape(content)
+                datestring = datetime.now().strftime("%b %d, %Y")
+                cur.execute('insert into posts values (NULL, ?, ?, ?, ?, ?)', (title, content, self.user.username, 0, datestring))
+                conn.commit()
 
             # expose local functions as commands to websocket
             fn_locals = locals()
