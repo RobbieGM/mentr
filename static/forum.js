@@ -26,6 +26,15 @@ addEventListener('load', function() {
 		document.getElementsByTagName('main')[0].appendChild(a);
 		setTimeout(() => { a.style.overflowY = 'auto' }, 200);
 	});
+	socket.addEventListener('open', () => socket.emit('sync_posts'));
+	socket.on.new_post = function(title, content, author, votes, dateString) {
+		caption = author + ' - ' + dateString;
+		var article = document.createElement('article');
+		article.innerHTML = '<div><img src="/static/ic_close_black_24px.svg"/>' + caption + '</div><h2>' + title + '</h2><p>' + content + '</p>';
+		var articlesLoading = document.querySelector('main > div.loader');
+		if (articlesLoading) articlesLoading.remove();
+		document.getElementsByTagName('main')[0].appendChild(article);
+	}
 });
 function closeFullscreenArticle() {
 	$('write').classList.remove('hidden');

@@ -149,6 +149,11 @@ class MainWebSocket(WebSocket):
                 cur.execute('insert into posts values (NULL, ?, ?, ?, ?, ?)', (title, content, self.user.username, 0, datestring))
                 conn.commit()
 
+            def sync_posts():
+                cur.execute('select * from posts')
+                for post_id, title, content, author, votes, datestring in cur:
+                    self.emit('new_post', title, content, author, votes, datestring)
+
             # expose local functions as commands to websocket
             fn_locals = locals()
             fn_locals = { func_name: func for func_name, func in fn_locals.items() if callable(func) }
