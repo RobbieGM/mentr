@@ -26,7 +26,13 @@ addEventListener('load', function() {
 		document.getElementsByTagName('main')[0].appendChild(a);
 		setTimeout(() => { a.style.overflowY = 'auto' }, 200);
 	});
-	socket.addEventListener('open', () => socket.emit('sync_posts'));
+	if (socket.readyState == socket.OPEN) {
+		socket.emit('sync_posts');
+	} else {
+		socket.addEventListener('open', function() {
+			socket.emit('sync_posts');
+		});
+	}
 	socket.on.new_post = function(title, content, author, votes, dateString) {
 		caption = author + ' - ' + dateString;
 		var article = document.createElement('article');
