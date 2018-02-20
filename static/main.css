@@ -130,6 +130,7 @@ nav {
 	transition: transform 0.3s, box-shadow 0.3s;
 	transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
 	-webkit-backface-visibility: hidden;
+	overflow-y: scroll;
 }
 
 nav.active {

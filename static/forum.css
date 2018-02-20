@@ -31,7 +31,7 @@ main article div img {
 	float: left;
 	opacity: 0;
 	visibility: hidden;
-	transition: opacity 0.2s, visibility 0.2s, background 0.1s, box-shadow 0.05s;
+	transition: all 0.1s;
 	border-radius: 50%;
 	cursor: pointer;
 }

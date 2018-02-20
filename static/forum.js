@@ -20,10 +20,10 @@ addEventListener('load', function() {
 		a.style.left = pos.left - 10 + 'px';
 		a.style.width = pos.width + 'px';
 		a.style.height = pos.height + 'px';
-		a.style.visibility = 'hidden';
 		a.children[0].children[0].addEventListener('click', closeFullscreenArticle);
-		setTimeout(() => { a.classList.add('fullscreen'); a.style.visibility = 'visible' }, 40);
 		document.getElementsByTagName('main')[0].appendChild(a);
+		void a.offsetWidth; // trigger re-render
+		a.classList.add('fullscreen');
 		setTimeout(() => { a.style.overflowY = 'auto' }, 200);
 	});
 	if (socket.readyState == socket.OPEN) {
