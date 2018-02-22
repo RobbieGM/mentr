@@ -102,7 +102,6 @@ class MainWebSocket(WebSocket):
         self.session_id = None
 
     def emit(self, *args):
-        print args
         print dumps(args)
         self.send(dumps(args), False)
 
@@ -151,8 +150,19 @@ class MainWebSocket(WebSocket):
 
             def sync_posts():
                 cur.execute('select * from posts')
+                no_posts = True
                 for post_id, title, content, author, votes, datestring in cur:
-                    self.emit('new_post', title, content, author, votes, datestring)
+                    self.emit('new_post', post_id, title, content, author, votes, datestring)
+                    no_posts = False
+                if no_posts:
+                    self.emit('no_posts')
+
+            def load_comments(post_id):
+                cur.execute('select content, author, votes, datestring from comments where post_id = ?', (post_id,))
+                for content, author, votes, datestring in cur:
+                    self.emit('new_comment', post_id, content, author, votes, datestring)
+                else:
+                    self.emit('no_comments', post_id)
 
             # expose local functions as commands to websocket
             fn_locals = locals()

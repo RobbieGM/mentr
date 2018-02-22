@@ -300,7 +300,7 @@ button.flat:active, a.button.flat:active {
 	height: 10em;
 }
 .loader {
-	margin: 60px auto;
+	margin: 20px auto;
 	font-size: 10px;
 	position: relative;
 	text-indent: -9999em;
