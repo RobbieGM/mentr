@@ -117,9 +117,9 @@ header {
 
 nav {
 	position: fixed;
-	width: 35%;
+	width: 50%;
 	min-width: 250px;
-	max-width: 400px;
+	max-width: 320px;
 	left: 0;
 	top: 0;
 	bottom: 0;

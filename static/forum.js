@@ -48,14 +48,19 @@ addEventListener('load', function() {
 	socket.on.no_posts = function() {
 		var articlesLoading = document.querySelector('main > div.loader');
 		if (articlesLoading)
-			articlesLoading.outerHTML = '<div style="text-align: center; width: 100%">No posts here</div>'
-
-	}
+			articlesLoading.outerHTML = '<div style="text-align: center; width: 100%">No posts here</div>';
+	};
 	socket.on.new_comment = function(postId, content, author, votes, dateString) {
 		var commentsSections = document.querySelector('main article[data-post-id="' + postId + '"] > div.comments'); // multiple because it will populate article and fullscreen article's comments
+		commentsSections.forEach(function(section) {
+			if (section.innerHTML
+		});
 	};
 	socket.on.no_comments = function(postId) {
 		var commentsSections = document.querySelector('main article[data-post-id="' + postId + '"] > div.comments'); // multiple because it will populate article and fullscreen article's comments
+		commentsSections.forEach(function(section) {
+			section.innerHTML = 'No comments yet';
+		});
 	};
 });
 function closeFullscreenArticle() {
