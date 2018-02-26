@@ -51,13 +51,15 @@ addEventListener('load', function() {
 			articlesLoading.outerHTML = '<div style="text-align: center; width: 100%">No posts here</div>';
 	};
 	socket.on.new_comment = function(postId, content, author, votes, dateString) {
-		var commentsSections = document.querySelector('main article[data-post-id="' + postId + '"] > div.comments'); // multiple because it will populate article and fullscreen article's comments
+		var commentsSections = document.querySelectorAll('main article[data-post-id="' + postId + '"] > div.comments'); // multiple because it will populate article and fullscreen article's comments
 		commentsSections.forEach(function(section) {
-			if (section.innerHTML
+			if (section.children.length == 1 && section.children[0].className == 'loader') {
+				section.innerHTML = '';
+			}
 		});
 	};
 	socket.on.no_comments = function(postId) {
-		var commentsSections = document.querySelector('main article[data-post-id="' + postId + '"] > div.comments'); // multiple because it will populate article and fullscreen article's comments
+		var commentsSections = document.querySelectorAll('main article[data-post-id="' + postId + '"] > div.comments'); // multiple because it will populate article and fullscreen article's comments
 		commentsSections.forEach(function(section) {
 			section.innerHTML = 'No comments yet';
 		});
