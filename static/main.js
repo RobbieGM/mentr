@@ -1,3 +1,9 @@
+(function() {
+	function remove() { this.parentNode && this.parentNode.removeChild(this); }
+	if (!Element.prototype.remove) Element.prototype.remove = remove;
+	if (Text && !Text.prototype.remove) Text.prototype.remove = remove;
+})(); // IE ChildNode.prototype.remove() polyfill
+
 function getCookie(name) {
   match = document.cookie.match(new RegExp(name + '=([^;]+)'));
   if (match) return match[1];

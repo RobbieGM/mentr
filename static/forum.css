@@ -70,6 +70,37 @@ main article.fullscreen * {
 	-ms-user-select: text;
 	user-select: text;
 }
+.comment {
+	margin: 10px 0;
+	padding: 5px;
+	background: var(--bkg-secondary);
+	position: relative;
+}
+.your-comment > textarea {
+	margin: 0;
+	width: 100%;
+	max-width: unset;
+	height: 48px;
+	transition: height 0.2s, border 0.2s;
+}
+.your-comment > textarea.focused {
+	height: 115px;	
+}
+.your-comment textarea ~ button.textarea-floating {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	opacity: 0;
+	transition: opacity 0.2s, background 0.2s;
+	user-select: none;
+	-webkit-user-select: none;
+}
+.your-comment textarea ~ button.textarea-floating:active {
+	transition: opacity 0.2s;
+}
+.your-comment textarea.focused ~ button.textarea-floating {
+	opacity: 1;
+}
 #write {
 	transform: translate(-50%, -50%) scale(1);
 	box-shadow: 0 3px 7px 0 rgba(0, 0, 0, 0.3);

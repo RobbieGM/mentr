@@ -15,9 +15,9 @@ addEventListener('load', function() {
 		$('write').classList.add('hidden');
 		var a = document.createElement('article');
 		a.id = 'fullscreen-article';
-		a.dataset.postId = article.postId;
+		a.dataset.postId = article.dataset.postId;
 		a.innerHTML = article.innerHTML;
-		a.innerHTML += '<div class="comments"><div class="loader"></div></div>';
+		a.innerHTML += '<div class="comments"><div class="comment your-comment"><textarea onfocus="this.classList.add(\'focused\')" placeholder=\'Your comment\'></textarea><button class="flat textarea-floating" onclick="postComment(this)">Post</button></div><div class="loader"></div></div>';
 		a.style.top = pos.top - 10 + 'px';
 		a.style.left = pos.left - 10 + 'px';
 		a.style.width = pos.width + 'px';
@@ -51,20 +51,19 @@ addEventListener('load', function() {
 			articlesLoading.outerHTML = '<div style="text-align: center; width: 100%">No posts here</div>';
 	};
 	socket.on.new_comment = function(postId, content, author, votes, dateString) {
-		var commentsSections = document.querySelectorAll('main article[data-post-id="' + postId + '"] > div.comments'); // multiple because it will populate article and fullscreen article's comments
-		commentsSections.forEach(function(section) {
-			if (section.children.length == 1 && section.children[0].className == 'loader') {
-				section.innerHTML = '';
-			}
+		var commentSectionLoaders = document.querySelectorAll('main article[data-post-id="' + postId + '"] > div.comments > div.loader'); // multiple because it will populate article and fullscreen article's comments
+		commentSectionLoaders.forEach(function(loader) {
+			loader.remove();
 		});
 	};
 	socket.on.no_comments = function(postId) {
-		var commentsSections = document.querySelectorAll('main article[data-post-id="' + postId + '"] > div.comments'); // multiple because it will populate article and fullscreen article's comments
-		commentsSections.forEach(function(section) {
-			section.innerHTML = 'No comments yet';
+		var commentSectionLoaders = document.querySelectorAll('main article[data-post-id="' + postId + '"] > div.comments > div.loader'); // multiple because it will populate article and fullscreen article's comments
+		commentSectionLoaders.forEach(function(loader) {
+			loader.remove();
 		});
 	};
 });
+
 function closeFullscreenArticle() {
 	$('write').classList.remove('hidden');
 	var fsa = $('fullscreen-article');
@@ -75,11 +74,20 @@ function closeFullscreenArticle() {
 	fsa.style.margin = '10px';
 	fsa.style.overflowY = 'hidden';
 	fsa.style.background = 'var(--bkg-secondary)';
+	fsa.children[0].children[0].style.opacity = '0';
 	setTimeout(() => fsa.remove(), 200);
 	enableScroll();
 }
+
 function post() {
 	toast('Posting...', 'OK');
 	$('write').classList.remove('overlay-active');
 	socket.emit('post', $('post-title').value, $('post-content').value);
+}
+
+function postComment(button) {
+	var postId = parseInt(button.parentNode.parentNode.parentNode.dataset.postId);
+	var comment = button.previousSibling.value;
+	toast('Posting comment...', 'OK');
+	socket.emit('post_comment', comment, postId);
 }

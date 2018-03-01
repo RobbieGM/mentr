@@ -102,7 +102,7 @@ class MainWebSocket(WebSocket):
         self.session_id = None
 
     def emit(self, *args):
-        print dumps(args)
+        print '>\t' + dumps(args)
         self.send(dumps(args), False)
 
     @staticmethod
@@ -130,7 +130,7 @@ class MainWebSocket(WebSocket):
 
     def received_message(self, received):
         try:
-            print 'Socket data: ' + received.data
+            print '<\t' + received.data
             msg = received.data
             msg_params = loads(msg)
             cmd = msg_params[0]
@@ -147,6 +147,7 @@ class MainWebSocket(WebSocket):
                 datestring = datetime.now().strftime("%b %d, %Y")
                 cur.execute('insert into posts values (NULL, ?, ?, ?, ?, ?)', (title, content, self.user.username, 0, datestring))
                 conn.commit()
+                socket.emit('toast', 'Posted')
 
             def sync_posts():
                 cur.execute('select * from posts')
@@ -163,6 +164,14 @@ class MainWebSocket(WebSocket):
                     self.emit('new_comment', post_id, content, author, votes, datestring)
                 else:
                     self.emit('no_comments', post_id)
+
+            def post_comment(comment, post_id):
+                comment = escape(comment)
+                datestring = datetime.now().strftime("%b %d, %Y")
+                if comment.isspace():
+                    socket.emit('toast', 'Could not post comment')
+                    return
+                cur.execute('insert into comments values (?, ?, ?, ?)')
 
             # expose local functions as commands to websocket
             fn_locals = locals()
