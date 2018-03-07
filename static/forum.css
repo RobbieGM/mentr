@@ -3,6 +3,7 @@ main {
 	padding: 5vw;
 	flex-wrap: wrap;
 }
+body main { text-align: left; } /* higher specificity than text-align: center; in main.css */
 main article {
 	flex: 1;
 	flex-basis: 400px;
@@ -24,12 +25,14 @@ main article div.article-metadata {
 	height: 24px;
 	line-height: 24px;
 	margin-bottom: 5px;
+	position: relative;
 }
 main article div.article-metadata img {
 	width: 24px;
 	height: 24px;
 	float: left;
 	opacity: 0;
+	margin-right: 6px;
 	visibility: hidden;
 	transition: all 0.1s;
 	border-radius: 50%;
@@ -42,6 +45,44 @@ main article.fullscreen div.article-metadata img {
 main article.fullscreen div.article-metadata img:active {
 	background: var(--bkg-secondary);
 	box-shadow: 0 0 0 5px var(--bkg-secondary);
+}
+main article div.article-metadata ul.dropdown {
+	position: absolute;
+	left: 54px;
+	top: 24px;
+	background: var(--bkg-primary);
+	box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	z-index: 3;
+	text-align: left;
+	min-width: 75px;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.15s ease-in, visibility 0.15s, max-height 0.15s;
+	overflow: hidden;
+	max-height: 0;
+}
+main article div.article-metadata ul.dropdown.visible {
+	max-height: 180px;
+	opacity: 1;
+	visibility: visible;
+	transition: opacity 0.15s ease-out, visibility 0.15s, max-height 0.15s ease-out;
+}
+main article div.article-metadata ul.dropdown li {
+	padding: 10px 16px;
+	cursor: pointer;
+	background: var(--bkg-primary);
+	transition: background 0.2s ease-out;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+main article div.article-metadata ul.dropdown li:active {
+	background: var(--bkg-secondary);
+	transition: none;
 }
 main article:active {
 	background: var(--bkg-tertiary);

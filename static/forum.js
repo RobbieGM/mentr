@@ -23,6 +23,7 @@ addEventListener('load', function() {
 		a.style.width = pos.width + 'px';
 		a.style.height = pos.height + 'px';
 		a.children[0].children[0].addEventListener('click', closeFullscreenArticle);
+		a.children[0].children[1].addEventListener('click', togglePostKebabMenu.bind(a.children[0].children[1]));
 		document.getElementsByTagName('main')[0].appendChild(a);
 		void a.offsetWidth; // trigger re-render
 		a.classList.add('fullscreen');
@@ -40,7 +41,7 @@ addEventListener('load', function() {
 		caption = author + ' - ' + dateString;
 		var article = document.createElement('article');
 		article.dataset.postId = postId;
-		article.innerHTML = '<div class="article-metadata"><img src="/static/ic_close_black_24px.svg"/>' + caption + '</div><h2>' + title + '</h2><p>' + content + '</p>';
+		article.innerHTML = '<div class="article-metadata"><img src="/static/ic_close_black_24px.svg"/><img src="/static/ic_more_vert_black_24px.svg"/><ul class="dropdown"><li>Delete</li><li>Flag</li><li>Edit</li><li>Share</li></ul>' + caption + '</div><h2>' + title + '</h2><p>' + content + '</p>';
 		var articlesLoading = document.querySelector('main > div.loader');
 		if (articlesLoading) articlesLoading.remove();
 		document.getElementsByTagName('main')[0].appendChild(article);
@@ -51,16 +52,17 @@ addEventListener('load', function() {
 			articlesLoading.outerHTML = '<div style="text-align: center; width: 100%">No posts here</div>';
 	};
 	socket.on.new_comment = function(postId, content, author, votes, dateString) {
-		var commentSectionLoaders = document.querySelectorAll('main article[data-post-id="' + postId + '"] > div.comments > div.loader'); // multiple because it will populate article and fullscreen article's comments
-		commentSectionLoaders.forEach(function(loader) {
-			loader.remove();
-		});
+		var commentSectionLoader = document.querySelector('#fullscreen-article[data-post-id="' + postId + '"] > div.comments > div.loader');
+		if (commentSectionLoader) commentSectionLoader.remove();
+		var commentSection = document.querySelector('#fullscreen-article[data-post-id="' + postId + '"] > div.comments');
+		var c = document.createElement('div');
+		c.className = 'comment';
+		c.innerHTML = content;
+		commentSection.appendChild(c);
 	};
 	socket.on.no_comments = function(postId) {
-		var commentSectionLoaders = document.querySelectorAll('main article[data-post-id="' + postId + '"] > div.comments > div.loader'); // multiple because it will populate article and fullscreen article's comments
-		commentSectionLoaders.forEach(function(loader) {
-			loader.remove();
-		});
+		var commentSectionLoader = document.querySelector('#fullscreen-article[data-post-id="' + postId + '"] > div.comments > div.loader');
+		if (commentSectionLoader) commentSectionLoader.remove();
 	};
 });
 
@@ -77,6 +79,10 @@ function closeFullscreenArticle() {
 	fsa.children[0].children[0].style.opacity = '0';
 	setTimeout(() => fsa.remove(), 200);
 	enableScroll();
+}
+
+function togglePostKebabMenu() {
+	this.nextSibling.classList.toggle('visible');
 }
 
 function post() {

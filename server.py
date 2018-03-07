@@ -147,7 +147,7 @@ class MainWebSocket(WebSocket):
                 datestring = datetime.now().strftime("%b %d, %Y")
                 cur.execute('insert into posts values (NULL, ?, ?, ?, ?, ?)', (title, content, self.user.username, 0, datestring))
                 conn.commit()
-                socket.emit('toast', 'Posted')
+                self.emit('toast', 'Posted')
 
             def sync_posts():
                 cur.execute('select * from posts')
@@ -160,9 +160,11 @@ class MainWebSocket(WebSocket):
 
             def load_comments(post_id):
                 cur.execute('select content, author, votes, datestring from comments where post_id = ?', (post_id,))
+                no_comments = True
                 for content, author, votes, datestring in cur:
+                    no_comments = False
                     self.emit('new_comment', post_id, content, author, votes, datestring)
-                else:
+                if no_comments:
                     self.emit('no_comments', post_id)
 
             def post_comment(comment, post_id):
@@ -171,7 +173,9 @@ class MainWebSocket(WebSocket):
                 if comment.isspace():
                     socket.emit('toast', 'Could not post comment')
                     return
-                cur.execute('insert into comments values (?, ?, ?, ?)')
+                cur.execute('insert into comments values (NULL, ?, ?, ?, ?, ?)', (post_id, comment, self.user.username, 0, datestring))
+                conn.commit()
+                self.emit('toast', 'Posted')
 
             # expose local functions as commands to websocket
             fn_locals = locals()
