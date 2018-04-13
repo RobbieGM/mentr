@@ -3,5 +3,10 @@
 	"name": "mentr",
 	"display": "standalone",
 	"icons": [
+		{
+			"src": "/static/icon-192x192.png",
+			"sizes": "192x192",
+			"type": "image/png"
+		}
 	]
 }

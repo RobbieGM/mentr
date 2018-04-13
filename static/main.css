@@ -1,34 +1,10 @@
-/* TODO:
-
-PROGRESSIVE WEB APP
-	- register a service worker (offline access?)
-	- make service worker respond with 200 OK when offline
-	- HTTPS
-	- add android web app manifest
-	- service worker must register manifest start_url
-	- add custom splash screen for web app
-	- address bar should match brand colors (theme_color in manifest)
-PERFORMANCE
-	- render-blocking resources (css: 630ms, js: 600ms)
-		- fix: add defer to scripts
-	- text compression (gzip, deflate)
-ACCESSIBILITY
-	- img alt
-	- html lang (auto-translation)
-BEST PRACTICES
-	- web app manifest short_name must be specified or it will be truncated (e.g., mentr - W...)
-	- try HTTP/2
-	- images must not resize aspect ratio
-
-(Source: Chrome audit)
-*/
-
 @import url('https://fonts.googleapis.com/css?family=Open+Sans:400,500');
 @import url('https://fonts.googleapis.com/css?family=Zilla+Slab');
 @import url('https://fonts.googleapis.com/css?family=Righteous');
 
 :root {
 	--text: #333333;
+	/*--text: green;*/
 	--bkg-primary: #fafafa;
 	--bkg-secondary: #d3d3d3;
 	--bkg-tertiary: #b1b1b1;
@@ -70,6 +46,10 @@ body {
 	font-family: 'Open Sans', sans-serif;
 	margin-top: 64px;
 	min-width: 100%;
+}
+
+body.preload * {
+	transition: none !important;
 }
 
 header {
@@ -188,12 +168,53 @@ nav a img {
 	opacity: 0;
 	visibility: hidden;
 	background: #000;
-	transition: all 0.15s;
+	transition: all 0.2s linear;
 }
 
-nav.active ~ #modal-overlay {
+nav.active ~ #modal-overlay, #modal-overlay.active {
 	opacity: 0.5;
 	visibility: visible;
+}
+
+#modal-dialog {
+	position: fixed;
+	background: var(--bkg-primary);
+	z-index: 99;
+	transform: translate(-50%, -40%);
+	top: 50%;
+	left: 50%;
+	width: 50%;
+	height: 75%;
+	min-height: 400px;
+	max-height: 550px;
+	border-radius: 3px;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.2s, width 0.2s, transform 0.2s, visibility 0.2s;
+	box-sizing: border-box;
+	padding: 50px;
+}
+
+@media screen and (max-width: 680px) {
+	#modal-dialog {
+		width: 100%;
+		border-radius: 0;
+	}
+}
+
+#modal-dialog.active {
+	visibility: visible;
+	opacity: 1;
+	transform: translate(-50%, -50%);
+}
+
+#md-buttons {
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	text-align: right;
+	font-size: 0; /* or else whitespace between buttons will appear */
 }
 
 a#profile {
@@ -238,10 +259,15 @@ input[type='text'], input[type='password'], textarea {
 	-webkit-user-select: text; /* fixes safari bug where user-select none disables text boxes */
 	box-shadow: none;
 	border-radius: 0;
+	background: var(--bkg-primary);
 }
 
 input[type='text']:focus, input[type='password']:focus, textarea:focus {
 	border: 2px solid var(--accent-light);
+}
+
+input[type='text']:-webkit-autofill, input[type='password']:-webkit-autofill, textarea:-webkit-autofill {
+	box-shadow: 0 0 0 9999px var(--bkg-primary) inset;
 }
 
 button, a.button {
@@ -256,10 +282,10 @@ button, a.button {
 	border-radius: 2px;
 	white-space: nowrap;
 	min-height: 48px;
-	min-width: 112px;
+	min-width: 96px;
 	line-height: 1rem;
 	text-align: center;
-	padding: 8px;
+	padding: 8px 18px;
 	margin: 8px;
 	text-transform: uppercase;
 	transition: box-shadow 0.3s, background 0.3s, color 0.3s;
@@ -272,7 +298,7 @@ button, a.button {
 	text-decoration: none;
 }
 
-button.flat, a.button.flat {
+button.flat, a.button.flat, #md-buttons button {
 	color: var(--accent-light);
 	background: transparent;
 	box-shadow: none;
@@ -288,14 +314,13 @@ button:active, a.button:active {
 	box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.3);
 }
 
-button.flat:active, a.button.flat:active {
+button.flat:active, a.button.flat:active, #md-buttons button:active {
 	color: var(--accent-dark);
 	background: rgba(0, 0, 0, 0.156);
 	box-shadow: none;
 }
 
-.loader,
-.loader:after {
+.loader, .loader:after {
 	border-radius: 50%;
 	width: 10em;
 	height: 10em;

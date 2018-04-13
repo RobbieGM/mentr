@@ -1,12 +1,6 @@
-(function() {
-	function remove() { this.parentNode && this.parentNode.removeChild(this); }
-	if (!Element.prototype.remove) Element.prototype.remove = remove;
-	if (Text && !Text.prototype.remove) Text.prototype.remove = remove;
-})(); // IE ChildNode.prototype.remove() polyfill
-
 function getCookie(name) {
-  match = document.cookie.match(new RegExp(name + '=([^;]+)'));
-  if (match) return match[1];
+	match = document.cookie.match(new RegExp(name + '=([^;]+)'));
+	if (match) return match[1];
 }
 function $(id) {
 	return document.getElementById(id);
@@ -22,7 +16,7 @@ function toast(msg, buttonText='OK') {
 	toast.timeout = setTimeout(() => toast.classList.remove('active'), 3000);
 }
 
-cancelBodyScroll = function(e) {
+function cancelBodyScroll(e) {
 	//e.preventDefault();
 	//e.stopPropagation();
 	scrollTo(0, lastBodyScroll);
@@ -43,6 +37,23 @@ function enableScroll() {
 	document.body.removeEventListener('DOMMouseScroll', cancelBodyScroll);
 	scrollTo(0, lastBodyScroll);
 }
+function showDialog(title, content, buttons, callback=function(){}) {
+	$('modal-overlay').classList.add('active');
+	$('modal-dialog').classList.add('active');
+	$('md-title').innerHTML = title;
+	$('md-content').innerHTML = content;
+	$('md-buttons').innerHTML = buttons.map(buttonText => '<button>' + buttonText + '</button>');
+	$('md-buttons').onclick = function(e) {
+		hideDialog();
+		if (e.target.tagName == 'BUTTON')
+			callback(e.target.innerHTML);
+	};
+}
+
+function hideDialog() {
+	$('modal-overlay').classList.remove('active');
+	$('modal-dialog').classList.remove('active');
+}
 
 var socket = new WebSocket('ws://' + location.host + '/socket');
 socket.on = {};
@@ -61,12 +72,14 @@ socket.sendObject = function(obj) {
 socket.emit = function(...args) {
 	socket.send(JSON.stringify(args));
 };
-socket.on['toast'] = function() {
-	toast.apply(null, arguments);
+socket.on['toast'] = function(...args) {
+	toast.apply(null, args);
 };
+socket.on['reload'] = () => location.reload();
 
 addEventListener('load', function() {
 	$('username').innerHTML = getCookie('username') || 'Logged Out';
+	document.body.classList.remove('preload');
 	document.querySelectorAll('nav a').forEach(function(link) {
 		link.addEventListener('click', function(e) {
 			e.preventDefault();

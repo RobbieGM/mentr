@@ -91,7 +91,6 @@ class User(object):
             print 'User ' + self.username + ' has 5 seconds to reconnect'
             self.start_logout_timer()
 
-
 class MainWebSocket(WebSocket):
 
     __metaclass__ = InstanceUnifier
@@ -145,37 +144,69 @@ class MainWebSocket(WebSocket):
                 title = escape(title)
                 content = escape(content)
                 datestring = datetime.now().strftime("%b %d, %Y")
-                cur.execute('insert into posts values (NULL, ?, ?, ?, ?, ?)', (title, content, self.user.username, 0, datestring))
+                cur.execute('insert into posts values (NULL, ?, ?, ?, ?, ?, ?)', (title, content, self.user.username, 0, datestring, 0))
                 conn.commit()
-                self.emit('toast', 'Posted')
+                self.emit('reload')
 
             def sync_posts():
                 cur.execute('select * from posts')
                 no_posts = True
-                for post_id, title, content, author, votes, datestring in cur:
+                for post_id, title, content, author, votes, datestring, is_flagged in cur:
                     self.emit('new_post', post_id, title, content, author, votes, datestring)
                     no_posts = False
                 if no_posts:
                     self.emit('no_posts')
 
             def load_comments(post_id):
-                cur.execute('select content, author, votes, datestring from comments where post_id = ?', (post_id,))
+                cur.execute('select comment_id, content, author, votes, datestring from comments where post_id = ?', (post_id,))
                 no_comments = True
-                for content, author, votes, datestring in cur:
+                for comment_id, content, author, votes, datestring in cur:
                     no_comments = False
-                    self.emit('new_comment', post_id, content, author, votes, datestring)
+                    self.emit('new_comment', post_id, comment_id, content, author, votes, datestring)
                 if no_comments:
                     self.emit('no_comments', post_id)
 
             def post_comment(comment, post_id):
                 comment = escape(comment)
-                datestring = datetime.now().strftime("%b %d, %Y")
-                if comment.isspace():
-                    socket.emit('toast', 'Could not post comment')
+                if comment.isspace() or not comment:
+                    self.emit('toast', 'Cannot post empty comment')
                     return
+                datestring = datetime.now().strftime("%b %d, %Y")
                 cur.execute('insert into comments values (NULL, ?, ?, ?, ?, ?)', (post_id, comment, self.user.username, 0, datestring))
                 conn.commit()
-                self.emit('toast', 'Posted')
+                
+                cur.execute('select last_insert_rowid()')
+                for comment_id in cur: # should only run once
+                    self.emit('toast', 'Posted')
+                    self.emit('new_comment', post_id, comment_id, comment, self.user.username, 0, datestring)
+
+            def delete(post_id):
+                cur.execute('select id from posts where id = ? and author = ?', (post_id, self.user.username))
+                owned = False
+                for post_id in cur:
+                    owned = True
+                if owned:
+                    cur.execute('delete from posts where id = ?', post_id)
+                    conn.commit()
+                    self.emit('reload')
+                else:
+                    self.emit('toast', 'You can\'t delete that post')
+
+            def flag(post_id):
+                cur.execute('update posts set flagged = 1 where id = ?', (post_id,))
+                conn.commit()
+
+            def delete_comment(comment_id):
+                cur.execute('select comment_id from comments where comment_id = ? and author = ?', (int(comment_id), self.user.username))
+                owned = False
+                for post_id in cur:
+                    owned = True
+                if owned:
+                    cur.execute('delete from comments where comment_id = ?', (comment_id,))
+                    conn.commit()
+                    self.emit('delete_comment', comment_id)
+                else:
+                    self.emit('toast', 'You can\'t delete that comment')
 
             # expose local functions as commands to websocket
             fn_locals = locals()
@@ -207,7 +238,6 @@ def main_page_wrap(html):
 
 class Root(object):
     index = index_static('index.html')
-    profile = index_static('profile.html', True)
     forum = index_static('forum.html', True)
     settings = index_static('settings.html', True)
     about = index_static('about.html')
@@ -226,7 +256,7 @@ class Root(object):
                 key = str(uuid4())
                 verification_link = 'http://0.0.0.0/verify?key=' + key
 
-                cur.execute('insert into accounts values (?, ?, ?, ?, ?, ?, ?)', (username, email, form['first-name'], form['last-name'], None, key, 0))
+                cur.execute('insert into accounts values (?, ?, ?, ?, ?, ?, ?, ?)', (username, email, form['first-name'], form['last-name'], None, key, 0, 'This user doesn\'t have a profile description yet.'))
                 conn.commit()
 
                 send_html(email, 'Mentr Verification', cwd + '/verification-email.html', first_name=form['first-name'], verification_link=verification_link)
@@ -240,10 +270,10 @@ class Root(object):
         if cp.request.method == 'GET':
             return cp.lib.static.serve_file(cwd + '/static/login.html')
         elif cp.request.method == 'POST':
-            email = form['username']
+            username = form['username']
             password = form['password']
 
-            selection = cur.execute('select * from accounts where email = ? or username = ?', (email, email)).fetchall()
+            selection = cur.execute('select * from accounts where is_verified = 1 and (email = ? or username = ?)', (username, username)).fetchall()
             if len(selection) == 0 or password != selection[0][4] or selection[0][6] == 0:
                 raise cp.HTTPRedirect('/login?incorrect=true')
             else:
@@ -252,6 +282,23 @@ class Root(object):
                 cp.response.cookie['username'] = u.username
                 raise cp.HTTPRedirect('/forum')
 
+    @cp.expose
+    @login_required
+    def profile(self, *args, **query_params):
+        client_username = users[cp.request.cookie['session_id'].value].username
+        try:
+            username = args[0]
+        except IndexError:
+            username = client_username
+        
+        editable = username == client_username
+        EDIT_BUTTON = '<a src="/edit_profile" class="button">Edit Profile</a>' if editable else ''
+
+        cur.execute('select profile_description from accounts where username = ?', (username,))
+        for (profile_description,) in cur: # should only run once
+            return open(cwd + '/static/profile.html').read().format(username=username, profile_description=profile_description, edit_button_if_needed=EDIT_BUTTON)
+
+        return cp.lib.static.serve_file(cwd + '/static/nonexistent_profile.html')
 
     @cp.expose
     def verify(self, **query_params):
@@ -270,6 +317,14 @@ class Root(object):
         handler = cp.request.ws_handler
         handler.session_id = cp.request.cookie['session_id'].value
 
+    def _cp_dispatch(self, vpath):
+        if vpath[0] == 'profile':
+            cp.request.params['username'] = vpath.pop()
+        return vpath
+
+def error_404(status, message, traceback, version):
+    return cp.lib.static.serve_file(cwd + '/static/error_404.html')
+
 WebSocketPlugin(cp.engine).subscribe()
 cp.tools.websocket = WebSocketTool()
 
@@ -278,11 +333,15 @@ cfg = {
         'tools.staticfile.on': True,
         'tools.staticfile.filename': cwd + '/static/favicon.ico',
     },
+    '/manifest.json': {
+        'tools.staticfile.on': True,
+        'tools.staticfile.filename': cwd + '/static/manifest.json',
+    },
     '/static': {
         'tools.staticdir.on': True,
         'tools.staticdir.dir': cwd + '/static',
         'tools.expires.on': True,
-        'tools.expires.secs': 60 * 60 * 24 * 5,
+        'tools.expires.secs': 0, # NOTE TO SELF: DO NOT USE EXPIRES. ONLY USE CACHING.
         'tools.gzip.on': True,
         'tools.caching.on': True,
     },
@@ -290,10 +349,8 @@ cfg = {
         'server.socket_host': '0.0.0.0',
         'server.socket_port': 8080,
         'log.screen': True,
-        'tools.caching.on': False,
+        'tools.caching.on': True,
         'tools.gzip.on': True,
-        'tools.expires.on': True,
-        'tools.expires.secs': 60 * 60 * 24 * 5,
     },
     '/socket': {
         'tools.websocket.on': True,
@@ -302,6 +359,9 @@ cfg = {
         'tools.gzip.on': False,
         'tools.expires.on': False,
     },
+    '/': {
+        'error_page.404': error_404,
+    }
 }
 
 if __name__ == '__main__':

@@ -41,7 +41,7 @@ addEventListener('load', function() {
 		caption = author + ' - ' + dateString;
 		var article = document.createElement('article');
 		article.dataset.postId = postId;
-		article.innerHTML = '<div class="article-metadata"><img src="/static/ic_close_black_24px.svg"/><img src="/static/ic_more_vert_black_24px.svg"/><ul class="dropdown"><li>Delete</li><li>Flag</li><li>Edit</li><li>Share</li></ul>' + caption + '</div><h2>' + title + '</h2><p>' + content + '</p>';
+		article.innerHTML = '<div class="article-metadata"><img src="/static/ic_close_black_24px.svg"/><img src="/static/ic_more_vert_black_24px.svg"/><ul class="dropdown" onclick="dropdownClicked(this, event)"><li>Delete</li><li>Flag</li></ul>' + caption + '</div><h2>' + title + '</h2><p>' + content + '</p>';
 		var articlesLoading = document.querySelector('main > div.loader');
 		if (articlesLoading) articlesLoading.remove();
 		document.getElementsByTagName('main')[0].appendChild(article);
@@ -51,18 +51,28 @@ addEventListener('load', function() {
 		if (articlesLoading)
 			articlesLoading.outerHTML = '<div style="text-align: center; width: 100%">No posts here</div>';
 	};
-	socket.on.new_comment = function(postId, content, author, votes, dateString) {
+	socket.on.new_comment = function(postId, commentId, content, author, votes, dateString) {
 		var commentSectionLoader = document.querySelector('#fullscreen-article[data-post-id="' + postId + '"] > div.comments > div.loader');
 		if (commentSectionLoader) commentSectionLoader.remove();
 		var commentSection = document.querySelector('#fullscreen-article[data-post-id="' + postId + '"] > div.comments');
 		var c = document.createElement('div');
 		c.className = 'comment';
+		c.dataset.commentId = commentId;
 		c.innerHTML = content;
+		var deleteButton = (author == getCookie('username')) ? `<img src="/static/ic_remove_circle_outline_black_24px.svg" onclick="deleteComment(this)"/>` : '';
+		c.innerHTML += `<aside>- ${author} - ${dateString}${deleteButton}</aside>`;
 		commentSection.appendChild(c);
 	};
 	socket.on.no_comments = function(postId) {
 		var commentSectionLoader = document.querySelector('#fullscreen-article[data-post-id="' + postId + '"] > div.comments > div.loader');
 		if (commentSectionLoader) commentSectionLoader.remove();
+	};
+	socket.on.delete_comment = function(commentId) {
+		var comment = document.querySelector('[data-comment-id="' + commentId + '"]');
+		comment.classList.add('deleted');
+		setTimeout(function() {
+			comment.remove();
+		}, 200);
 	};
 });
 
@@ -83,6 +93,31 @@ function closeFullscreenArticle() {
 
 function togglePostKebabMenu() {
 	this.nextSibling.classList.toggle('visible');
+	let button = this;
+	if (this.nextSibling.classList.contains('visible')) {
+		console.log('1')
+		document.body.addEventListener('click', function(e) {
+			if (e.target == button || !button.nextSibling.classList.contains('visible')) return;
+			togglePostKebabMenu.apply(button, []);
+			this.removeEventListener('click', arguments.callee);
+		})
+	} else console.log('2')
+}
+
+function dropdownClicked(menu, event) {
+	var article = menu.parentNode.parentNode;
+	switch (event.target.innerHTML) {
+		case 'Delete':
+			showDialog('Delete post', 'Are you sure you want to delete this post?', ['Cancel', 'OK'], function(res) {
+				if (res == 'OK')
+					socket.emit('delete', article.dataset.postId);
+			});
+
+			break;
+		case 'Flag':
+			socket.emit('flag', article.dataset.postId);
+			break;
+	}
 }
 
 function post() {
@@ -96,4 +131,14 @@ function postComment(button) {
 	var comment = button.previousSibling.value;
 	toast('Posting comment...', 'OK');
 	socket.emit('post_comment', comment, postId);
+	button.previousSibling.value = '';
+}
+
+function deleteComment(button) {
+	showDialog('Delete comment', 'Are you sure you want to delete your comment?', ['Cancel', 'OK'], function(res) {
+		if (res == 'OK') {
+			var commentId = button.parentNode.parentNode.dataset.commentId;
+			socket.emit('delete_comment', commentId);
+		}
+	});
 }

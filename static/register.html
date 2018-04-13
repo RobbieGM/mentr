@@ -7,7 +7,9 @@
 		<meta name='viewport' content='width=device-width,user-scalable=no'/>
 		<meta name='mobile-web-app-capable' content='yes'/>
 		<meta name='apple-mobile-web-app-capable' content='yes'/>
-		<meta name='theme-color' content='#34b3a1'/>
+		<meta name='theme-color' content='#ff4242'/>
+		<link rel='manifest' href='/manifest.json'/>
+		<link rel='icon' sizes='192x192' href='/static/icon-192x192.png'/>
 		<script defer src='/static/main.js'></script>
 		<script>
 			function updateEmail(self) {
@@ -18,7 +20,14 @@
 			}
 		</script>
 	</head>
-	<body>
+	<body class='preload'>
+		<div id='modal-dialog'>
+			<h2 id='md-title'></h2>
+			<p id='md-content'></p>
+			<div id='md-buttons'>
+				<button>OK</button>
+			</div>
+		</div>
 		<nav id='navbar'>
 			<a href='/profile/' id='profile'><img src='/static/ic_person_black_24px.svg'/><span id='username'>Profile</span></a>
 			<a href='/forum/'><img src='/static/ic_question_answer_black_24px.svg'/>Forum</a>
