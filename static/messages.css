@@ -1,0 +1,81 @@
+main {
+	padding: 0;
+	padding-top: 5px;
+}
+
+main > div {
+	padding: 10px 15px;
+	cursor: pointer;
+	transition: background 0.2s;
+	text-align: left;
+}
+
+main > div::before {
+	width: 48px;
+	height: 48px;
+	float: left;
+	border-radius: 50%;
+	background: var(--bkg-secondary);
+	content: attr(data-icon-letter);
+	text-align: center;
+	line-height: 48px;
+	margin-right: 1rem;
+	font-size: 1.2rem;
+	transition: all 0.2s;
+}
+
+main > div:active, main > div.held-down {
+	background: var(--bkg-secondary);
+	transition: none;
+}
+
+main > div:active::before, main > div.held-down::before {
+	background: var(--bkg-tertiary);
+	transition: none;
+}
+
+main > div p {
+	margin: 0;
+	color: #666666;
+}
+
+main > div p.who {
+	font-size: 1.1rem;
+	color: var(--text);
+}
+
+#loader {
+	margin-top: 100px;
+}
+
+#no-conversations {
+	padding: calc(10px + 5vw);
+}
+
+#plus {
+	transform: translate(-25%, -25%) scale(1);
+	box-shadow: 0 3px 7px 0 rgba(0, 0, 0, 0.3);
+	min-width: 57px;
+	min-height: 57px;
+	max-width: 65px;
+	max-height: 65px;
+	width: 6vw;
+	height: 6vw;
+	border-radius: 50%;
+	position: fixed;
+	right: 0;
+	bottom: 0;
+	background-color: var(--accent-light);
+	background-image: url(/static/ic_add_black_24px.svg);
+	background-repeat: no-repeat;
+	background-size: 50%;
+	background-position: center;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+
+#plus:active, #plus.held-down {
+	background-color: var(--accent-dark);
+	box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.4);
+	transition: none;
+}

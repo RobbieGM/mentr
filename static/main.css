@@ -26,6 +26,12 @@
 	user-select: none;
 	-ms-overflow-style: none;
 }
+.selectable {
+	-webkit-user-select: auto;
+	-moz-user-select: auto;
+	-ms-user-select: auto;
+	user-select: auto;
+}
 *:focus {
 	outline: none !important;
 }
@@ -67,11 +73,23 @@ header {
 
 #logo {
 	font: 30px 'Righteous', sans-serif;
-	padding-left: 16px;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
 	color: var(--bkg-primary);
+}
+
+.wrapper {
+	width: 30px;
+	height: 30px;
+	transition: all 0.1s ease-in;
+	border-radius: 999px;
+}
+
+.wrapper.held-down, .wrapper:active {
+	transition: all 0.05s ease-out;
+	background: rgba(255, 255, 255, 0.3);
+	box-shadow: 0 0 0 12px rgba(255, 255, 255, 0.3);
 }
 
 #hamburger-menu {
@@ -81,18 +99,30 @@ header {
 	justify-content: center;
 }
 
-#hamburger-menu svg {
-	cursor: pointer;
+#top-back-button {
+	padding-left: 16px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
 }
 
-#hamburger-menu svg g {
+#hamburger-menu svg, #top-back-button svg {
+	cursor: pointer;
+	position: relative;
+}
+
+#hamburger-menu svg g, #top-back-button svg g {
 	fill: var(--bkg-primary);
 	transition-duration: 0.3s;
 }
 
-#hamburger-menu svg:active g {
-	fill: var(--bkg-secondary);
-	transition-duration: 0s;
+#hamburger-menu svg:active g, #hamburger-menu svg.held-down g, #top-back-button svg:active g, #top-back-button svg.held-down g {
+	/*fill: var(--bkg-tertiary);*/
+	/*transition-duration: 0s;*/
+}
+
+#hamburger-menu svg::after {
+
 }
 
 nav {
@@ -107,7 +137,7 @@ nav {
 	background: #ffffff;
 	box-shadow: none;
 	transform: translateX(-100%);
-	transition: transform 0.3s, box-shadow 0.3s;
+	transition: transform 0.2s, box-shadow 0.2s;
 	transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
 	-webkit-backface-visibility: hidden;
 	overflow-y: auto;
@@ -135,7 +165,7 @@ nav a {
 	transition: background 0.2s;
 }
 
-nav a.target:active {
+nav a.target:active, nav a.target.held-down {
 	background: #484848;
 }
 
@@ -148,13 +178,14 @@ nav a.target img {
 	filter: brightness(99999%);
 }
 
-nav a:active {
+nav a:active, nav a.held-down {
 	background: var(--bkg-secondary);
+	color: var(--text);
 	transition: none;
 }
 
 nav a img {
-	height: 100%;
+	height: 24px;
 	margin-right: 15px;
 }
 
@@ -224,18 +255,25 @@ a#profile {
 	color: var(--bkg-primary);
 }
 
-a#profile:active {
+a#profile:active, a#profile.held-down {
 	background: var(--accent-dark);
 }
 
 a#profile img {
 	filter: brightness(9999%);
+	height: 100%;
 }
 
 h1, h2, h3, h4 {
 	margin-top: 0;
 	text-align: center;
 	font-family: 'Zilla Slab', sans-serif;
+}
+
+h3.label {
+	font-size: 1rem;
+	text-transform: uppercase;
+	font-family: 'Open Sans', sans-serif;
 }
 
 main {
@@ -245,6 +283,7 @@ main {
 
 input[type='text'], input[type='password'], textarea {
 	outline: none;
+	-webkit-appearance: none;
 	border: 2px solid #777777;
 	display: block;
 	font-size: 1rem;
@@ -270,9 +309,18 @@ input[type='text']:-webkit-autofill, input[type='password']:-webkit-autofill, te
 	box-shadow: 0 0 0 9999px var(--bkg-primary) inset;
 }
 
+a {
+	color: var(--accent-light);
+	text-decoration: underline;
+}
+
+a:active {
+	color: var(--accent-dark);
+}
+
 button, a.button {
 	appearance: none;
-	display: inline-flex;
+	display: inline-block;
 	outline: none;
 	background: var(--accent-light);
 	border: none;
@@ -283,7 +331,7 @@ button, a.button {
 	white-space: nowrap;
 	min-height: 48px;
 	min-width: 96px;
-	line-height: 1rem;
+	line-height: 2rem;
 	text-align: center;
 	padding: 8px 18px;
 	margin: 8px;
@@ -308,13 +356,13 @@ button + button, a.button + a.button, button + a.button, a.button + button {
 	margin-left: 0;
 }
 
-button:active, a.button:active {
+button:active, a.button:active, button.held-down, a.button.held-down {
 	background: var(--accent-dark);
 	transition: box-shadow 0.05s;
 	box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.3);
 }
 
-button.flat:active, a.button.flat:active, #md-buttons button:active {
+button.flat:active, button.flat.held-down, a.button.flat:active, a.button.flat.held-down, #md-buttons button:active, #md-buttons button.held-down {
 	color: var(--accent-dark);
 	background: rgba(0, 0, 0, 0.156);
 	box-shadow: none;
@@ -359,6 +407,7 @@ button.flat:active, a.button.flat:active, #md-buttons button:active {
 	flex-direction: row;
 	align-items: center;
 	transition: ease-in all 0.2s;
+	z-index: 10;
 }
 
 #toast.active {

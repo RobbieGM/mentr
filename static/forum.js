@@ -1,4 +1,23 @@
+var historyStates = [null];
+
 addEventListener('load', function() {
+	addEventListener('popstate', function(e) {
+		var state;
+		try {
+			state = e.state[0];
+		} catch (err) {
+			state = null;
+		}
+		historyStates.push(state);
+		var previousState = historyStates[historyStates.length - 2];
+		console.log('ps', previousState);
+		if (previousState == 'fullscreen-article') {
+			closeFullscreenArticle(null, true);
+		}
+		if (previousState == 'new-post') {
+			cancelWritingPost(null, true);
+		}
+	});
 	document.body.addEventListener('click', function(e) {
 		var article = e.target;
 		while (article.matches && !article.matches('main article')) {
@@ -11,11 +30,12 @@ addEventListener('load', function() {
 		// article.style.width = pos.width + 'px';
 		// article.style.height = pos.height + 'px';
 		// setTimeout(() => article.classList.add('fullscreen'), 5);
-		disableScroll();
+		
 		$('write').classList.add('hidden');
 		var a = document.createElement('article');
 		a.id = 'fullscreen-article';
 		a.dataset.postId = article.dataset.postId;
+		a.dataset.postType = article.dataset.postType;
 		a.innerHTML = article.innerHTML;
 		a.innerHTML += '<div class="comments"><div class="comment your-comment"><textarea onfocus="this.classList.add(\'focused\')" placeholder=\'Your comment\'></textarea><button class="flat textarea-floating" onclick="postComment(this)">Post</button></div><div class="loader"></div></div>';
 		a.style.top = pos.top - 10 + 'px';
@@ -27,8 +47,15 @@ addEventListener('load', function() {
 		document.getElementsByTagName('main')[0].appendChild(a);
 		void a.offsetWidth; // trigger re-render
 		a.classList.add('fullscreen');
-		setTimeout(() => { a.style.overflowY = 'auto' }, 200);
-		socket.emit('load_comments', a.dataset.postId);
+		setTimeout(() => {
+			requestAnimationFrame(() => {
+				a.style.overflowY = 'auto';
+				disableScroll();
+				socket.emit('load_comments', a.dataset.postId);
+				history.pushState(['fullscreen-article'], null, '/forum');
+				historyStates.push('fullscreen-article');
+			});
+		}, 220);
 	});
 	if (socket.readyState == socket.OPEN) {
 		socket.emit('sync_posts');
@@ -37,10 +64,23 @@ addEventListener('load', function() {
 			socket.emit('sync_posts');
 		});
 	}
-	socket.on.new_post = function(postId, title, content, author, votes, dateString) {
+	socket.on.new_post = function(postId, postType, title, content, author, votes, dateString) {
 		caption = author + ' - ' + dateString;
 		var article = document.createElement('article');
 		article.dataset.postId = postId;
+		article.dataset.postType = postType;
+		if (postType == 'image') {
+			var img = new Image();
+			img.src = content;
+			img.id = Math.random();
+			content = img.outerHTML;
+			img.onload = function() {
+				var copy = document.getElementById(img.id);
+				var aspectRatio = copy.naturalWidth / copy.naturalHeight;
+				var height = Math.min(copy.naturalHeight, 220, (parseInt(getComputedStyle(copy.parentNode).width) - 15 * 2) / aspectRatio);
+				copy.style.width = height * aspectRatio + 'px';
+			};
+		}
 		article.innerHTML = '<div class="article-metadata"><img src="/static/ic_close_black_24px.svg"/><img src="/static/ic_more_vert_black_24px.svg"/><ul class="dropdown" onclick="dropdownClicked(this, event)"><li>Delete</li><li>Flag</li></ul>' + caption + '</div><h2>' + title + '</h2><p>' + content + '</p>';
 		var articlesLoading = document.querySelector('main > div.loader');
 		if (articlesLoading) articlesLoading.remove();
@@ -52,37 +92,95 @@ addEventListener('load', function() {
 			articlesLoading.outerHTML = '<div style="text-align: center; width: 100%">No posts here</div>';
 	};
 	socket.on.new_comment = function(postId, commentId, content, author, votes, dateString) {
-		var commentSectionLoader = document.querySelector('#fullscreen-article[data-post-id="' + postId + '"] > div.comments > div.loader');
+		var commentSectionLoader = document.querySelector(`#fullscreen-article[data-post-id='${postId}'] > div.comments > div.loader`);
 		if (commentSectionLoader) commentSectionLoader.remove();
-		var commentSection = document.querySelector('#fullscreen-article[data-post-id="' + postId + '"] > div.comments');
+		var commentSection = document.querySelector(`#fullscreen-article[data-post-id='${postId}'] > div.comments`);
 		var c = document.createElement('div');
 		c.className = 'comment';
 		c.dataset.commentId = commentId;
 		c.innerHTML = content;
-		var deleteButton = (author == getCookie('username')) ? `<img src="/static/ic_remove_circle_outline_black_24px.svg" onclick="deleteComment(this)"/>` : '';
-		c.innerHTML += `<aside>- ${author} - ${dateString}${deleteButton}</aside>`;
+		var parsedAuthor = author.replace(/<.*?>/g, '');
+		var deleteButton = (parsedAuthor == getCookie('username')) ? `<img src='/static/ic_remove_circle_outline_black_24px.svg' onclick='deleteComment(this)'/>` : '';
+		c.innerHTML += `<aside>-&nbsp;${author}&nbsp;- ${dateString}${deleteButton}</aside>`;
 		commentSection.appendChild(c);
 	};
 	socket.on.no_comments = function(postId) {
-		var commentSectionLoader = document.querySelector('#fullscreen-article[data-post-id="' + postId + '"] > div.comments > div.loader');
+		var commentSectionLoader = document.querySelector(`#fullscreen-article[data-post-id='${postId}'] > div.comments > div.loader`);
 		if (commentSectionLoader) commentSectionLoader.remove();
 	};
 	socket.on.delete_comment = function(commentId) {
-		var comment = document.querySelector('[data-comment-id="' + commentId + '"]');
+		var comment = document.querySelector(`[data-comment-id='${commentId}']`);
 		comment.classList.add('deleted');
 		setTimeout(function() {
 			comment.remove();
 		}, 200);
 	};
+	socket.on.post_success = function() {
+		cancelWritingPost();
+		setTimeout(() => location.reload(), 200);
+	};
+
+	$('insert-text').onclick = function() {
+		setPostType('text');
+	};
+	$('insert-image').onclick = function() {
+		$('image-file-input').click();
+	};
+	$('insert-link').onclick = function() {
+		//setPostType('link');
+		toast('Coming soon');
+	};
+	$('insert-location').onclick = function() {
+		//setPostType('text');
+		toast('Coming soon');
+	};
+	$('post-content').oninput = function() {
+		if (this.textContent.trim().length == 0) {
+			this.classList.add('empty');
+		} else {
+			this.classList.remove('empty');
+		}
+		try {
+			getSelection().focusNode.nextSibling.scrollIntoView();
+		} catch (err) {}
+	};
+	$('post-content').oninput(); // to show placeholder
+	$('image-file-input').onchange = function() {
+		var lastPostType = $('edit-box').dataset.postType;
+		setPostType('image');
+		resizeImageFile(this.files[0]).then(dataUrl => {
+			var image = new Image();
+			image.src = dataUrl;
+			image.onload = function() {
+				$('post-content').innerHTML = ''; // clear previous image, don't allow multiple images
+				$('post-content').appendChild(image);
+			};
+		}).catch(() => {
+			toast('There was an error.');
+			setPostType(lastPostType);
+		});
+	};
 });
 
-function closeFullscreenArticle() {
+function setPostType(postType) {
+	var currentType = $('edit-box').dataset.postType;
+	if (currentType != postType) {
+		$('edit-box').dataset.postType = postType;
+		$('post-content').innerHTML = '';
+		$('post-content').oninput();
+		$('post-content').contentEditable = postType == 'text';
+	}
+}
+
+function closeFullscreenArticle(e, fromBackButton=false) {
+	if (!fromBackButton )
+		history.back(); // undo history.pushState
 	$('write').classList.remove('hidden');
 	var fsa = $('fullscreen-article');
-	var imp = ' !important';
 	['top', 'left', 'width', 'height'].forEach(function(prop) {
 		fsa.style.setProperty(prop, fsa.style.getPropertyValue(prop), 'important');
 	});
+	fsa.classList.add('shrinking');
 	fsa.style.margin = '10px';
 	fsa.style.overflowY = 'hidden';
 	fsa.style.background = 'var(--bkg-secondary)';
@@ -95,13 +193,12 @@ function togglePostKebabMenu() {
 	this.nextSibling.classList.toggle('visible');
 	let button = this;
 	if (this.nextSibling.classList.contains('visible')) {
-		console.log('1')
 		document.body.addEventListener('click', function(e) {
 			if (e.target == button || !button.nextSibling.classList.contains('visible')) return;
 			togglePostKebabMenu.apply(button, []);
 			this.removeEventListener('click', arguments.callee);
 		})
-	} else console.log('2')
+	}
 }
 
 function dropdownClicked(menu, event) {
@@ -109,10 +206,12 @@ function dropdownClicked(menu, event) {
 	switch (event.target.innerHTML) {
 		case 'Delete':
 			showDialog('Delete post', 'Are you sure you want to delete this post?', ['Cancel', 'OK'], function(res) {
-				if (res == 'OK')
-					socket.emit('delete', article.dataset.postId);
+				if (res == 'OK') {
+					socket.emit('delete_post', article.dataset.postId);
+					closeFullscreenArticle();
+					setTimeout(() => location.reload(), 200);
+				}
 			});
-
 			break;
 		case 'Flag':
 			socket.emit('flag', article.dataset.postId);
@@ -120,10 +219,35 @@ function dropdownClicked(menu, event) {
 	}
 }
 
+function cancelWritingPost(e, fromBackButton=false) {
+	if (!fromBackButton)
+		history.back(); // undo history.pushState
+	$('write').classList.remove('overlay-active');
+	enableScroll();
+}
+
+function writeNewPost() {
+	this.classList.add('overlay-active');
+	setTimeout(() => requestAnimationFrame(disableScroll), 220);
+	history.pushState(['new-post'], null, '/forum');
+	historyStates.push('new-post');
+}
+
 function post() {
 	toast('Posting...', 'OK');
-	$('write').classList.remove('overlay-active');
-	socket.emit('post', $('post-title').value, $('post-content').value);
+	switch ($('edit-box').dataset.postType) {
+		case 'text':
+			socket.emit('post', 'text', $('post-title').innerText, $('post-content').innerText);
+			break;
+		case 'image':
+			imageSrc = $('post-content').children[0].src;
+			socket.emit('post', 'image', $('post-title').innerText, imageSrc);
+			break;
+		default:
+			toast('Unsupported post type');
+			cancelWritingPost();
+			return;
+	}
 }
 
 function postComment(button) {

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>mentr - Finish setting up your account</title>
+		<title>404 Error</title>
 		<link href='/static/main.css' rel='stylesheet'/>
-		<link rel='icon' href='/favicon.ico' type='image/x-icon'/>
+		<<link rel='icon' href='/favicon.ico' type='image/x-icon'/>
 		<meta name='viewport' content='width=device-width,user-scalable=no'/>
 		<meta name='mobile-web-app-capable' content='yes'/>
 		<meta name='apple-mobile-web-app-capable' content='yes'/>
@@ -14,11 +14,6 @@
 		<link rel='icon' sizes='192x192' href='/static/icon-192x192.png'/>
 		<link rel='apple-touch-icon' sizes='192x192' href='/static/icon-192x192.png'/>
 		<script defer src='/static/main.js'></script>
-		<script>
-			addEventListener('load', function() {
-				document.getElementsByName('key')[0].value = location.href.split('=')[1];
-			});
-		</script>
 	</head>
 	<body class='preload'>
 		<div id='modal-dialog'>
@@ -62,13 +57,9 @@
 			</span>
 		</header>
 		<main>
-			<h1>Finish account setup</h1>
-			<p>Please choose a password. Make it memorable, because currently there's no way to recover or change it if you forget it (except by <a href='mailto:1moorer@chelsea.k12.mi.us'>contacting the developer</a>). Also, for security reasons, please <i>do not use your school password</i>.</p>
-			<form action='/verify' method='post'>
-				<input type='password' placeholder='Password' name='password'/>
-				<input type='hidden' name='key'/>
-				<button type='submit'>OK</button>
-			</form>
+			<h1>Nonexistent Profile</h1>
+			<p>The profile at this URL doesn't exist.</p>
+			<button onclick='history.back()'>Go Back</button>
 		</main>
 		<div id='toast'><span id='toast-message'></span><button class="flat" id="toast-button" onclick='this.parentNode.classList.remove("active")'>OK</button></div>
 	</body>

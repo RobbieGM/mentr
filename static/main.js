@@ -17,9 +17,11 @@ function toast(msg, buttonText='OK') {
 }
 
 function cancelBodyScroll(e) {
-	//e.preventDefault();
-	//e.stopPropagation();
-	scrollTo(0, lastBodyScroll);
+	e.stopPropagation();
+	if (e.target == document.body) {
+		e.preventDefault();
+		scrollTo(0, lastBodyScroll);
+	}
 };
 var lastBodyScroll;
 
@@ -35,7 +37,7 @@ function enableScroll() {
 	body.style.overflowY = 'auto';
 	body.onscroll = body.onmousewheel = body.ontouchmove = null;
 	document.body.removeEventListener('DOMMouseScroll', cancelBodyScroll);
-	scrollTo(0, lastBodyScroll);
+	//scrollTo(0, lastBodyScroll); // makes stuff laggy
 }
 function showDialog(title, content, buttons, callback=function(){}) {
 	$('modal-overlay').classList.add('active');
@@ -58,7 +60,6 @@ function hideDialog() {
 var socket = new WebSocket('ws://' + location.host + '/socket');
 socket.on = {};
 socket.onmessage = function(received) {
-	console.log(received.data);
 	var args = JSON.parse(received.data);
 	console.log(args);
 	var cmd = args.shift();
@@ -70,21 +71,39 @@ socket.sendObject = function(obj) {
 	socket.send(JSON.stringify(obj));
 };
 socket.emit = function(...args) {
-	socket.send(JSON.stringify(args));
+	if (socket.readyState == socket.OPEN) {
+		socket.send(JSON.stringify(args));
+	} else socket.queue.push(JSON.stringify(args));
+};
+socket.queue = [];
+socket.onopen = function() {
+	for (let msg of socket.queue) {
+		socket.send(msg);
+	}
 };
 socket.on['toast'] = function(...args) {
 	toast.apply(null, args);
 };
 socket.on['reload'] = () => location.reload();
 
+function addActiveClass(evt) {
+	evt.target.classList.add('held-down');
+}
+function removeActiveClass(evt) {
+	evt.target.classList.remove('held-down');
+}
+
 addEventListener('load', function() {
 	$('username').innerHTML = getCookie('username') || 'Logged Out';
-	document.body.classList.remove('preload');
+	$('top-back-button').onclick = function() {
+		setTimeout(() => history.back(), 100);
+	};
+	document.body.classList.remove('preload'); // reenable transitions (disabling them initially fixes a Chrome bug but we need those transitions back now)
 	document.querySelectorAll('nav a').forEach(function(link) {
 		link.addEventListener('click', function(e) {
 			e.preventDefault();
 			$('navbar').classList.remove('active');
-			setTimeout(() => location.assign(link.href), 300);
+			setTimeout(() => location.assign(link.href), 200);
 		});
 
 		url = str => str.replace(/\/+$/, '');
@@ -93,4 +112,8 @@ addEventListener('load', function() {
 			link.classList.add('target');
 		}
 	});
+	// fast :active fake psuedo classes for mobile
+	document.body.addEventListener('touchstart', addActiveClass);
+	document.body.addEventListener('touchend', removeActiveClass);
+	document.body.addEventListener('touchcancel', removeActiveClass);
 });

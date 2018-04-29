@@ -16,9 +16,13 @@
 		<link rel='icon' href='/favicon.ico' type='image/x-icon'/>
 		<meta name='viewport' content='width=device-width,user-scalable=no'/>
 		<meta name='mobile-web-app-capable' content='yes'/>
+		<meta name='apple-mobile-web-app-capable' content='yes'/>
+		<meta name='apple-mobile-web-app-title' content='mentr'/>
 		<meta name='theme-color' content='#ff4242'/>
+		<meta name='application-name' content='mentr'/>
 		<link rel='manifest' href='/manifest.json'/>
 		<link rel='icon' sizes='192x192' href='/static/icon-192x192.png'/>
+		<link rel='apple-touch-icon' sizes='192x192' href='/static/icon-192x192.png'/>
 		<script defer src='/static/main.js'></script>
 		<style>
 		main {
@@ -41,21 +45,34 @@
 		<nav id='navbar'>
 			<a href='/profile/' id='profile'><img src='/static/ic_person_black_24px.svg'/><span id='username'>Profile</span></a>
 			<a href='/forum/'><img src='/static/ic_question_answer_black_24px.svg'/>Forum</a>
+			<a href='/messages/'><img src='/static/ic_people_black_24px.svg'/>Messages</a>
 			<a href='/settings/'><img src='/static/ic_settings_black_24px.svg'/>Settings</a>
 			<a href='/about/'><img src='/static/ic_info_black_24px.svg'/>About</a>
 			<a href='/help/'><img src='/static/ic_feedback_black_24px.svg'/>Help &amp; Feedback</a>
 		</nav>
 		<div id='modal-overlay' onmousedown='document.getElementById("navbar").classList.remove("active");' ontouchstart='document.getElementById("navbar").classList.remove("active");'></div>
 		<header>
+			<span id='top-back-button'>
+				<div class='wrapper'>
+					<svg width='30px' height='30px' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
+						<g>
+							<path d="M0 0h24v24H0z" fill="none"/>
+							<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+						</g>
+					</svg>
+				</div>
+			</span>
 			<span id='logo'>mentr</span>
 			<span id='hamburger-menu' onclick='document.getElementById("navbar").classList.toggle("active");'>
-				<svg version='1.1' xmlns='http://www.w3.org/2000/svg' width='30px' height='30px' viewBox='0 0 100 100'>
-					<g>
-						<rect x='0' y='0' width='100' height='20'/>
-						<rect x='0' y='40' width='100' height='20'/>
-						<rect x='0' y='80' width='100' height='20'/>
-					</g>
-				</svg>
+				<div class='wrapper'>
+					<svg version='1.1' xmlns='http://www.w3.org/2000/svg' width='30px' height='30px' viewBox='0 0 100 100'>
+						<g>
+							<rect x='0' y='0' width='100' height='20'/>
+							<rect x='0' y='40' width='100' height='20'/>
+							<rect x='0' y='80' width='100' height='20'/>
+						</g>
+					</svg>
+				</div>
 			</span>
 		</header>
 		<main>
@@ -64,7 +81,6 @@
 				<li>Have a live private chat about something you need help with, or open a public question Q&amp;A style</li>
 				<li>Everyone here is someone you know--straight from the Chelsea School system</li>
 				<li>Monthly fee is likely to deter spammers and/or low-quality questions</li>
-				<li>Each month, the most helpful member of that month is rewarded by getting their monthly fee back--and then some!</li>
 			</ul>
 			<div id='cta'>
 				<a href='/register' class='button'>Sign Up</a><a href='/login' class='button'>Log In</a>
