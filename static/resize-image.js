@@ -4,7 +4,7 @@ function resizeImageFile(file) {
 			reject('Not an image file');
 			return;
 		}
-		var fr = new FileReader();
+		/*var fr = new FileReader();
 		fr.onload = () => {
 			var image = new Image();
 			image.onload = imageEvt => {
@@ -26,6 +26,14 @@ function resizeImageFile(file) {
 			};
 			image.src = fr.result;
 		};
-		fr.readAsDataURL(file);
+		fr.readAsDataURL(file);*/
+		loadImage(file, function(canvas) {
+			resolve(canvas.toDataURL('image/jpeg'));
+		}, {
+			maxWidth: 1000,
+			maxHeight: 1000,
+			canvas: true,
+			orientation: true
+		});
 	});
 }

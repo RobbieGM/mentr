@@ -9,13 +9,14 @@
 		<meta name='mobile-web-app-capable' content='yes'/>
 		<meta name='apple-mobile-web-app-capable' content='yes'/>
 		<meta name='apple-mobile-web-app-title' content='mentr'/>
-		<meta name='theme-color' content='#ff4242'/>
+		<meta name='theme-color' content='#00b5a5'/>
 		<meta name='application-name' content='mentr'/>
 		<link rel='manifest' href='/manifest.json'/>
 		<link rel='icon' sizes='192x192' href='/static/icon-192x192.png'/>
 		<link rel='apple-touch-icon' sizes='192x192' href='/static/icon-192x192.png'/>
 		<script defer src='/static/main.js'></script>
-		<script src='/static/resize-image.js'></script>
+		<script defer src='/static/load-image.min.js'></script>
+		<script defer src='/static/resize-image.js'></script>
 		<!-- <script src='/static/ios-safari-vh.js'></script> -->
 		<script defer src='/static/forum.js'></script>
 	</head>
@@ -65,10 +66,6 @@
 		</main>
 		<div id='write' onclick='writeNewPost.apply(this)'></div>
 		<div id='new-post'>
-			<!--h1>New Post</h1>
-			<input type='text' placeholder='Post title' id='post-title'/>
-			<textarea placeholder='Post content' style='height: 200px' id='post-content'></textarea>
-			<button class='flat' onclick='cancelWritingPost()'>Cancel</button><button onclick='post()'>Post</button-->
 			<div id='new-post-top-bar'>
 				<section class='flex-left'>
 					<div>
@@ -91,8 +88,8 @@
 					<img src='/static/ic_text_format_black_24px.svg' draggable='false'/>
 				</div>
 				<div id='insert-image'>
-					<img src='/static/ic_photo_camera_black_24px.svg' draggable='false'/>
-					<input type='file' id='image-file-input' accept='image/*' capture='camera'/>
+					<img src='/static/ic_photo_black_24px.svg' draggable='false'/>
+					<input type='file' id='image-file-input'/>
 				</div>
 				<div id='insert-link'>
 					<img src='/static/ic_link_black_24px.svg' draggable='false'/>

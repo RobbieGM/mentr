@@ -1,23 +1,10 @@
-var historyStates = [null];
-
 addEventListener('load', function() {
-	addEventListener('popstate', function(e) {
-		var state;
-		try {
-			state = e.state[0];
-		} catch (err) {
-			state = null;
-		}
-		historyStates.push(state);
-		var previousState = historyStates[historyStates.length - 2];
-		console.log('ps', previousState);
-		if (previousState == 'fullscreen-article') {
-			closeFullscreenArticle(null, true);
-		}
-		if (previousState == 'new-post') {
-			cancelWritingPost(null, true);
-		}
-	});
+	backButtonActionFrom['fullscreen-article'] = function() {
+		closeFullscreenArticle(null, true);
+	};
+	backButtonActionFrom['new-post'] = function() {
+		cancelWritingPost(null, true);
+	};
 	document.body.addEventListener('click', function(e) {
 		var article = e.target;
 		while (article.matches && !article.matches('main article')) {
@@ -52,8 +39,7 @@ addEventListener('load', function() {
 				a.style.overflowY = 'auto';
 				disableScroll();
 				socket.emit('load_comments', a.dataset.postId);
-				history.pushState(['fullscreen-article'], null, '/forum');
-				historyStates.push('fullscreen-article');
+				pushState('fullscreen-article');
 			});
 		}, 220);
 	});
@@ -100,7 +86,7 @@ addEventListener('load', function() {
 		c.dataset.commentId = commentId;
 		c.innerHTML = content;
 		var parsedAuthor = author.replace(/<.*?>/g, '');
-		var deleteButton = (parsedAuthor == getCookie('username')) ? `<img src='/static/ic_remove_circle_outline_black_24px.svg' onclick='deleteComment(this)'/>` : '';
+		var deleteButton = (parsedAuthor == getCookie('username') || getCookie('username') == 'moderator') ? `<img src='/static/ic_remove_circle_outline_black_24px.svg' onclick='deleteComment(this)'/>` : '';
 		c.innerHTML += `<aside>-&nbsp;${author}&nbsp;- ${dateString}${deleteButton}</aside>`;
 		commentSection.appendChild(c);
 	};
@@ -146,19 +132,25 @@ addEventListener('load', function() {
 	};
 	$('post-content').oninput(); // to show placeholder
 	$('image-file-input').onchange = function() {
-		var lastPostType = $('edit-box').dataset.postType;
-		setPostType('image');
-		resizeImageFile(this.files[0]).then(dataUrl => {
-			var image = new Image();
-			image.src = dataUrl;
-			image.onload = function() {
-				$('post-content').innerHTML = ''; // clear previous image, don't allow multiple images
-				$('post-content').appendChild(image);
-			};
-		}).catch(() => {
-			toast('There was an error.');
-			setPostType(lastPostType);
-		});
+		try {
+			if (!this.files[0].type.includes('image/')) {
+				toast('Image files only');
+				return;
+			}
+			var lastPostType = $('edit-box').dataset.postType;
+			setPostType('image');
+			resizeImageFile(this.files[0]).then(dataUrl => {
+				var image = new Image();
+				image.src = dataUrl;
+				image.onload = function() {
+					$('post-content').innerHTML = ''; // clear previous image, don't allow multiple images
+					$('post-content').appendChild(image);
+				};
+			}).catch(() => {
+				toast('There was an error.');
+				setPostType(lastPostType);
+			});
+		} catch (err) {} // no files
 	};
 });
 
@@ -197,7 +189,7 @@ function togglePostKebabMenu() {
 			if (e.target == button || !button.nextSibling.classList.contains('visible')) return;
 			togglePostKebabMenu.apply(button, []);
 			this.removeEventListener('click', arguments.callee);
-		})
+		});
 	}
 }
 
@@ -229,8 +221,7 @@ function cancelWritingPost(e, fromBackButton=false) {
 function writeNewPost() {
 	this.classList.add('overlay-active');
 	setTimeout(() => requestAnimationFrame(disableScroll), 220);
-	history.pushState(['new-post'], null, '/forum');
-	historyStates.push('new-post');
+	pushState('new-post');
 }
 
 function post() {

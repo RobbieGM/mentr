@@ -1,10 +1,22 @@
+html, body, #wrapper {
+	overflow-x: hidden;
+	min-height: 100%;
+}
+
+#wrapper {
+	position: relative;
+	min-height: calc(100vh - 140px);
+}
+
 main {
 	padding: 0;
-	padding-top: 5px;
+	padding-top: 8px;
+	overflow-x: hidden;
+	width: 100vw;
 }
 
 main > div {
-	padding: 10px 15px;
+	padding: 15px;
 	cursor: pointer;
 	transition: background 0.2s;
 	text-align: left;
@@ -22,6 +34,7 @@ main > div::before {
 	margin-right: 1rem;
 	font-size: 1.2rem;
 	transition: all 0.2s;
+	font-family: 'work sans', 'open sans', sans-serif;
 }
 
 main > div:active, main > div.held-down {
@@ -37,6 +50,9 @@ main > div:active::before, main > div.held-down::before {
 main > div p {
 	margin: 0;
 	color: #666666;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow-x: hidden;
 }
 
 main > div p.who {
@@ -45,16 +61,184 @@ main > div p.who {
 }
 
 #loader {
-	margin-top: 100px;
+	margin-top: calc(5vw + 10px);
 }
 
 #no-conversations {
 	padding: calc(10px + 5vw);
 }
 
+#conversation {
+	z-index: 2;
+	transform: translateX(100%);
+	transform-origin: right center;
+	top: 64px;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	width: 100%;
+	background: var(--bkg-primary);
+	transition: all 0.2s ease-in;
+	position: fixed;
+	overflow-y: auto;
+	-webkit-overflow-scrolling: touch;
+}
+
+main::before {
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	content: '';
+	visibility: hidden;
+	opacity: 0;
+	background: black;
+	transition: opacity 0.2s ease-in, visibility 0.2s;
+}
+
+#conversation.active ~ main::before {
+	visibility: visible;
+	opacity: 0.3;
+	transition: opacity 0.2s ease-out, visibility 0.2s;
+}
+
+#conversation::after {
+	content: 'spacer'; /* empty text doesn't work */
+	height: 64px;
+	margin: 0;
+	padding: 0;
+	float: left;
+	clear: both;
+	visibility: hidden;
+}
+
+#conversation.active {
+	transition: all 0.2s ease-out;
+	transform: translateX(0);
+}
+
+#conversation ~ main {
+	transition: transform 0.2s ease-in;
+}
+
+#conversation.active ~ main {
+	transform: translateX(-100px);
+	transition: transform 0.2s ease-out;
+}
+
+#conversation > div.message {
+	background: var(--bkg-secondary);
+	float: left;
+	clear: both;
+	margin: 8px;
+	margin-bottom: 0;
+	padding: 7px 10px;
+	max-width: 70%;
+	border-radius: 3px;
+}
+
+#conversation > div.message.my-message {
+	float: right;
+	background: var(--text);
+	color: var(--bkg-primary);
+}
+
+#conversation #new-conversation-username {
+	background: var(--bkg-secondary);
+	border: none;
+	margin: 0;
+	width: 100%;
+	max-width: unset;
+	position: relative;
+	top: -48px;
+	transition: top 0.2s ease-in;
+}
+
+#conversation #new-conversation-username.visible {
+	top: 0;
+	transition: top 0.2s ease-out;
+}
+
+#conversation #new-conversation-username.no-animate {
+	transition: none !important;
+}
+
+#bottom-bar {
+	z-index: 2;
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	height: 54px;
+	transition: transform 0.2s ease-in;
+	transform: translateX(100vw);
+}
+
+#conversation.active ~ #bottom-bar {
+	transform: translateX(0);
+	transition: transform 0.2s ease-out;
+}
+
+#bottom-bar input {
+	max-width: unset;
+	height: 54px;
+	margin: 0;
+	flex: 1;
+	/*border-top-left-radius: 9999px;*/
+	/*border-bottom-left-radius: 9999px;*/
+	padding-left: 18px;
+	border: none;
+	background: var(--bkg-secondary);
+	box-shadow: 0 0 0 0 var(--accent-light) inset;
+	transition: background 0.2s;
+}
+
+#bottom-bar input:focus {}
+
+#bottom-bar span {
+	height: 54px;
+	width: 54px;
+	/*border-top-right-radius: 9999px;*/
+	/*border-bottom-right-radius: 9999px;*/
+	text-align: center;
+	background: var(--accent-light);
+	box-sizing: border-box;
+	padding: 15px;
+	transition: all 0.2s;
+	cursor: pointer;
+}
+
+#bottom-bar span:active, #bottom-bar span.held-down {
+	transition: none;
+	background: var(--accent-dark);
+}
+
+#bottom-bar span img {
+	width: 24px;
+	height: 24px;
+}
+
+#bottom-bar span#send-image {
+	background: var(--bkg-tertiary);
+}
+
+#bottom-bar span#send-image:active, #bottom-bar span#send-image.held-down {
+	background: var(--bkg-quaternary);
+}
+
+#conversation.active ~ #plus {
+	transform: translate(-25%, -25%) scale(0);
+	opacity: 0;
+	transition: all 0.2s ease-in;
+}
+
 #plus {
 	transform: translate(-25%, -25%) scale(1);
-	box-shadow: 0 3px 7px 0 rgba(0, 0, 0, 0.3);
+	opacity: 1;
 	min-width: 57px;
 	min-height: 57px;
 	max-width: 65px;
@@ -71,11 +255,10 @@ main > div p.who {
 	background-size: 50%;
 	background-position: center;
 	cursor: pointer;
-	transition: all 0.2s;
+	transition: all 0.2s ease-out;
 }
 
 #plus:active, #plus.held-down {
 	background-color: var(--accent-dark);
-	box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.4);
 	transition: none;
 }

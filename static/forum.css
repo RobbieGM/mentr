@@ -19,6 +19,7 @@ main article {
 }
 
 main article p {
+	white-space: pre;
 	text-align: left;
 	margin: 0;
 }
@@ -241,7 +242,7 @@ main article.fullscreen * {
 
 #write {
 	transform: translate(-25%, -25%) scale(1);
-	box-shadow: 0 3px 7px 0 rgba(0, 0, 0, 0.3);
+	/*box-shadow: 0 3px 7px 0 rgba(0, 0, 0, 0.3);*/
 	min-width: 56px;
 	min-height: 56px;
 	max-width: 65px;
@@ -263,7 +264,7 @@ main article.fullscreen * {
 
 #write:active, #write.held-down {
 	background-color: var(--accent-dark);
-	box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.4);
+	/*box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.4);*/
 	transition: none;
 }
 
@@ -290,6 +291,7 @@ main article.fullscreen * {
 	box-sizing: border-box;
 	background: var(--bkg-primary);
 	text-align: center;
+	-webkit-overflow-scrolling: touch;
 }
 
 #write.overlay-active ~ #new-post {
@@ -448,15 +450,13 @@ main article.fullscreen * {
 	background: var(--bkg-tertiary);
 }*/
 
-#new-post-bottom-bar div img {
-	border-radius: 999px;
+#new-post-bottom-bar div {
 	transition: all 0.1s ease-in;
 }
 
-#new-post-bottom-bar div:active img, #new-post-bottom-bar div.held-down img {
-	transition: all 0.1s ease-out;
+#new-post-bottom-bar div:active, #new-post-bottom-bar div.held-down {
+	transition: none;
 	background: var(--bkg-tertiary);
-	box-shadow: 0 0 0 6px var(--bkg-tertiary);
 }
 
 #image-file-input {

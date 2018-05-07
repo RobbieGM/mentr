@@ -34,12 +34,12 @@ function getInternalIP() {
 				var hosts = [];
 				sdp.split('\r\n').forEach(function (line) {
 					if (~line.indexOf('a=candidate')) {
-						var parts = line.split(' '),
+						let parts = line.split(' '),
 							addr = parts[4],
 							type = parts[7];
 						if (type === 'host') processIPs(addr);
 					} else if (~line.indexOf('c=')) {
-						var parts = line.split(' '),
+						let parts = line.split(' '),
 							addr = parts[2];
 						processIPs(addr);
 					}

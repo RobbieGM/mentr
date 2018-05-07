@@ -1,3 +1,25 @@
+var historyStates = [null];
+var backButtonActionFrom = {};
+
+function pushState(state) {
+	history.pushState([state], null);
+	historyStates.push(state);
+}
+
+addEventListener('popstate', function(e) {
+	var state;
+	try {
+		state = e.state[0];
+	} catch (err) {
+		state = null;
+	}
+	historyStates.push(state);
+	var previousState = historyStates[historyStates.length - 2];
+	if (backButtonActionFrom[previousState])
+		backButtonActionFrom[previousState]();
+});
+
+
 function getCookie(name) {
 	match = document.cookie.match(new RegExp(name + '=([^;]+)'));
 	if (match) return match[1];
@@ -22,7 +44,7 @@ function cancelBodyScroll(e) {
 		e.preventDefault();
 		scrollTo(0, lastBodyScroll);
 	}
-};
+}
 var lastBodyScroll;
 
 function disableScroll() {
@@ -81,10 +103,10 @@ socket.onopen = function() {
 		socket.send(msg);
 	}
 };
-socket.on['toast'] = function(...args) {
+socket.on.toast = function(...args) {
 	toast.apply(null, args);
 };
-socket.on['reload'] = () => location.reload();
+socket.on.reload = () => location.reload();
 
 function addActiveClass(evt) {
 	evt.target.classList.add('held-down');

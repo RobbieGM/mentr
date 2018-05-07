@@ -9,13 +9,14 @@
 		<meta name='mobile-web-app-capable' content='yes'/>
 		<meta name='apple-mobile-web-app-capable' content='yes'/>
 		<meta name='apple-mobile-web-app-title' content='mentr'/>
-		<meta name='theme-color' content='#ff4242'/>
+		<meta name='theme-color' content='#00b5a5'/>
 		<meta name='application-name' content='mentr'/>
 		<link rel='manifest' href='/manifest.json'/>
 		<link rel='icon' sizes='192x192' href='/static/icon-192x192.png'/>
 		<link rel='apple-touch-icon' sizes='192x192' href='/static/icon-192x192.png'/>
 		<script defer src='/static/main.js'></script>
-		<script src='/static/messages.js'></script>
+		<script src='/static/resize-image.js'></script>
+		<script defer src='/static/messages.js'></script>
 	</head>
 	<body class='preload'>
 		<div id='modal-dialog'>
@@ -58,10 +59,21 @@
 				</div>
 			</span>
 		</header>
-		<main id='main'>
-			<section class='loader' id='loader'></section>
-		</main>
-		<div id='plus'></div>
+		<div id='wrapper'>
+			<div id='conversation' class='selectable'>
+				<input type='text' id='new-conversation-username' placeholder='Username'/>
+			</div>
+			<div id='bottom-bar'>
+				<input type='file' id='image-file-input' style='display: none'/>
+				<span id='send-image'><img src='/static/ic_photo_black_24px.svg' ondragstart='return false'/></span>
+				<input type='text' id='message-input' placeholder='Text message'/>
+				<span id='send'><img src='/static/ic_send_black_24px.svg' ondragstart='return false'/></span>
+			</div>
+			<div id='plus'></div>
+			<main id='main'>
+				<section class='loader' id='loader'></section>
+			</main>
+		</div>
 		<div id='toast'><span id='toast-message'></span><button class="flat" id="toast-button" onclick='this.parentNode.classList.remove("active")'>OK</button></div>
 	</body>
 </html>

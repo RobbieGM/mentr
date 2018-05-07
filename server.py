@@ -4,7 +4,8 @@
 # Test friend posting notifications (mostly done)
 # Infinite scroll, rather than showing EVERY POST AT ONCE
 # Post sorting by newest first (oldest first is default)
-# Instant messaging
+# Be able to remove friends
+# Remove EXIF data from images (iPhone images are sideways)
 
 import cherrypy as cp
 from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
@@ -12,7 +13,7 @@ from ws4py.websocket import WebSocket, EchoWebSocket
 from os import getcwd
 from uuid import uuid4
 import sqlite3
-from threading import Timer
+from threading import Timer, Lock, Thread
 from cgi import escape
 from json import dumps, loads
 from traceback import print_exc
@@ -26,6 +27,7 @@ import collections
 users = {}
 conn = sqlite3.connect('main.db', check_same_thread=False)
 cur = conn.cursor()
+db_lock = Lock()
 
 accounts = []
 
@@ -39,6 +41,12 @@ def login_required(func):
 		else:
 			print('8 (logged out)')
 			raise cp.HTTPRedirect('/?show_login=true')
+	return proxy_func
+
+def db_synchronized(func):
+	def proxy_func(*args, **kwargs):
+		with db_lock:
+			return func(*args, **kwargs)
 	return proxy_func
 
 def csv_to_list(csv):
@@ -56,6 +64,7 @@ EMAIL_TEMPLATES = {
 	'notification': ('{title}', '{content}') # general form
 }
 
+@db_synchronized
 def dispatch_event(event_type, recipients, event_origin, **kwargs):
 	if recipients == 'all':
 		cur.execute('select email, friends_csv, notification_subscriptions_csv from accounts')
@@ -136,7 +145,6 @@ class User(object, metaclass=InstanceUnifier): # more like "Session", multiple u
 		self.logout_timer.start()
 
 	def on_socket_close(self):
-		print('Socket closed')
 		if len(self.sockets) == 0:
 			print('User ' + self.username + ' has 5 seconds to reconnect')
 			self.start_logout_timer()
@@ -176,6 +184,7 @@ class MainWebSocket(WebSocket, metaclass=InstanceUnifier):
 			self.user.sockets.append(self)
 
 	def closed(self, code, reason=None):
+		print('Socket closed, reason: ' + repr(reason))
 		if self.session_id in users:
 			self.user.sockets.remove(self)
 			self.user.on_socket_close()
@@ -197,12 +206,15 @@ class MainWebSocket(WebSocket, metaclass=InstanceUnifier):
 				if title.isspace() or content.isspace():
 					self.emit('toast', 'Missing title or content')
 					return
+				if len(title) > 65:
+					self.emit('toast', 'Title is too long')
+					return
 				chars = 8
 				MB = 1000000
 				if (post_type == 'text' and len(content) > 4000) or (post_type == 'image' and len(content) * chars > 21*MB):
 					self.emit('toast', 'Your post is too large')
 					return
-				legal_image = re.compile(r'^[\w+:,/;=]+$')
+				legal_image = re.compile(r'^data:image/[\w+:,/;=]+$')
 				if post_type == 'image' and not legal_image.match(content):
 					self.emit('toast', 'Corrupted image')
 					return
@@ -211,10 +223,12 @@ class MainWebSocket(WebSocket, metaclass=InstanceUnifier):
 					content = escape(content)
 				datestring = datetime.now().strftime("%b %d, %Y")
 				self.emit('post_success')
-				cur.execute('insert into posts values (NULL, ?, ?, ?, ?, ?, ?, ?)', (post_type, title, content, self.user.username, 0, datestring, 0))
-				conn.commit()
+				with db_lock:
+					cur.execute('insert into posts values (NULL, ?, ?, ?, ?, ?, ?, ?)', (post_type, title, content, self.user.username, 0, datestring, 0))
+					conn.commit()
 				dispatch_event('friend_post', 'all', self.user.username, name=self.user.username, post_title=title, post_content=content)
 
+			@db_synchronized
 			def sync_posts():
 				cur.execute('select * from posts')
 				no_posts = True
@@ -224,6 +238,7 @@ class MainWebSocket(WebSocket, metaclass=InstanceUnifier):
 				if no_posts:
 					self.emit('no_posts')
 
+			@db_synchronized
 			def load_comments(post_id):
 				cur.execute('select comment_id, content, author, votes, datestring from comments where post_id = ?', (post_id,))
 				no_comments = True
@@ -239,37 +254,48 @@ class MainWebSocket(WebSocket, metaclass=InstanceUnifier):
 					self.emit('toast', 'Cannot post empty comment')
 					return
 				datestring = datetime.now().strftime("%b %d, %Y")
-				cur.execute('insert into comments values (NULL, ?, ?, ?, ?, ?)', (post_id, comment, self.user.username, 0, datestring))
-				conn.commit()
-				
-				cur.execute('select last_insert_rowid()')
-				for comment_id in cur:
-					self.emit('toast', 'Posted')
-					self.emit('new_comment', post_id, comment_id, comment, username_linkify(self.user.username), 0, datestring)
-					break
-				
-				cur.execute('select author from posts where id = ?', (post_id,))
-				for (author,) in cur:
-					dispatch_event('comment', [author], self.user.username, name=self.user.username, comment_content=comment)
+				author_name = None
+				with db_lock:
+					cur.execute('insert into comments values (NULL, ?, ?, ?, ?, ?)', (post_id, comment, self.user.username, 0, datestring))
+					conn.commit()
+					
+					cur.execute('select last_insert_rowid()')
+					for comment_id in cur:
+						self.emit('toast', 'Posted')
+						self.emit('new_comment', post_id, comment_id, comment, username_linkify(self.user.username), 0, datestring)
+						break
+					
+					cur.execute('select author from posts where id = ?', (post_id,))
+					for (author,) in cur:
+						author_name = author
 
+				if author_name: # if not, it's because they commented on a nonexistent post
+					dispatch_event('comment', [author_name], self.user.username, name=self.user.username, comment_content=comment)
 
+			@db_synchronized
 			def delete_post(post_id):
-				cur.execute('select id from posts where id = ? and author = ?', (post_id, self.user.username))
+				cur.execute('select id from posts where id = ? and author in (?, ?)', (post_id, self.user.username, 'moderator'))
 				owned = False
-				for post_id in cur:
+				for (post_id,) in cur:
 					owned = True
-				if owned:
-					cur.execute('delete from posts where id = ?', post_id)
+				if owned or self.user.username == 'moderator':
+					cur.execute('delete from posts where id = ?', (post_id,))
 					conn.commit()
 				else:
 					self.emit('toast', 'You can\'t delete that post')
 
+			@db_synchronized
 			def flag(post_id):
 				cur.execute('update posts set flagged = 1 where id = ?', (post_id,))
 				conn.commit()
 
+			@db_synchronized
 			def delete_comment(comment_id):
-				cur.execute('select comment_id from comments where comment_id = ? and author = ?', (int(comment_id), self.user.username))
+				comment_id = int(comment_id)
+				if self.user.username == 'moderator':
+					cur.execute('select comment_id from comments where comment_id = ?', (comment_id,))
+				else:
+					cur.execute('select comment_id from comments where comment_id = ? and author = ?', (comment_id, self.user.username))
 				for post_id in cur:
 					cur.execute('delete from comments where comment_id = ?', (comment_id,))
 					conn.commit()
@@ -277,12 +303,14 @@ class MainWebSocket(WebSocket, metaclass=InstanceUnifier):
 					return
 				self.emit('toast', 'You can\'t delete that comment')
 
+			@db_synchronized
 			def set_profile_description(description):
 				description = escape(description)
 				cur.execute('update accounts set profile_description = ? where username = ?', (description, self.user.username))
 				conn.commit()
 				self.emit('reload')
 
+			@db_synchronized
 			def add_friend(friend_name):
 				cur.execute('select friends_csv from accounts where username = ?', (self.user.username,))
 				for (friends_csv,) in cur:
@@ -296,6 +324,7 @@ class MainWebSocket(WebSocket, metaclass=InstanceUnifier):
 					conn.commit()
 					return
 
+			@db_synchronized
 			def load_settings():
 				cur.execute('select notification_subscriptions_csv from accounts where username = ?', (self.user.username,))
 				for (notification_subscriptions_csv,) in cur:
@@ -304,6 +333,7 @@ class MainWebSocket(WebSocket, metaclass=InstanceUnifier):
 					self.emit('load_settings', notif_subs)
 					return
 
+			@db_synchronized
 			def change_settings(key, value):
 				cur.execute('select notification_subscriptions_csv from accounts where username = ?', (self.user.username,))
 				for (notification_subscriptions_csv,) in cur:
@@ -316,25 +346,88 @@ class MainWebSocket(WebSocket, metaclass=InstanceUnifier):
 					conn.commit()
 					return
 
-			def load_conversations():
+			@db_synchronized
+			def load_conversation_previews():
 				conversations = {} # { person: last_message }
-				cur.execute('select sender, receiver, content, (select first_name from accounts where username = messages.sender) as sender_first_name, (select first_name from accounts where username = messages.receiver) as receiver_first_name from messages where sender = ? or receiver = ? order by date desc', (self.user.username, self.user.username))
-				for (sender, receiver, content, sender_first_name, receiver_first_name) in cur:
+				cur.execute('select sender, receiver, content, (select first_name from accounts where username = messages.sender) as sender_first_name, (select first_name from accounts where username = messages.receiver) as receiver_first_name, type from messages where sender = ? or receiver = ? order by date desc', (self.user.username, self.user.username))
+				for (sender, receiver, content, sender_first_name, receiver_first_name, message_type) in cur:
 					if sender == self.user.username:
 						other_person = receiver
 						other_person_first_name = receiver_first_name
 					else:
 						other_person = sender
 						other_person_first_name = sender_first_name
-					if other_person not in conversations:
+					if other_person not in conversations: # if their name is not already added to the conversation preview list
+						if message_type == 'image':
+							content = 'Sent an image'
+						if sender == self.user.username:
+							content = 'You: ' + content
 						conversations[other_person] = (content, other_person_first_name[0])
 				no_conversations = True
 				for other_person in conversations:
 					last_message, other_person_first_name_letter = conversations[other_person]
-					self.emit('conversation_loaded', other_person, last_message, other_person_first_name_letter)
+					self.emit('conversation_preview_loaded', other_person, last_message, other_person_first_name_letter)
 					no_conversations = False
 				if no_conversations:
 					self.emit('no_conversations')
+
+			@db_synchronized
+			def load_conversation(other_person): # Warning: will load entire conversation at once
+				cur.execute('select sender, receiver, content, date, type from messages where (sender = ? and receiver = ?) or (sender = ? and receiver = ?) order by date', (self.user.username, other_person, other_person, self.user.username))
+				messages = []
+				for (sender, receiver, content, date, message_type) in cur:
+					messages.append([sender, receiver, content, date, message_type])
+				self.emit('messages_loaded', messages)
+
+			def message(person, message, message_type):
+				if message.strip().isspace() or not message:
+					toast('Cannot send empty message')
+					return
+				if (message_type == 'image' and len(message) > 2625000) or (message_type == 'text' and len(message) > 4000):
+					toast('Message is too long')
+					return
+				now = int(datetime.now().timestamp() * 1000)
+				with db_lock:
+					cur.execute('select username from accounts where username = ?', (person,))
+					username_exists = False
+					for _ in cur:
+						username_exists = True
+					if username_exists:
+						cur.execute('insert into messages values (?, ?, ?, ?, ?)', (self.user.username, person, message, now, message_type))
+						conn.commit()
+					else:
+						self.emit('toast', 'Cannot send message to ' + person)
+						return
+				self.emit('messages_loaded', [[self.user.username, person, message, now, message_type]])
+				load_conversation_previews()
+
+			@db_synchronized
+			def load_user_accounts():
+				if self.user.username != 'moderator':
+					return
+				cur.execute('select username, first_name, last_name, profile_description, friends_csv from accounts where is_verified = 1')
+				self.emit('loaded_user_accounts', cur.fetchall())
+
+			@db_synchronized
+			def ban(username):
+				if self.user.username != 'moderator':
+					return
+				password = '!bannedByMod'
+				cur.execute('update accounts set password = ? where username = ?', (password, username))
+
+			@db_synchronized
+			def delete_content(username):
+				if self.user.username != 'moderator':
+					return
+				cur.execute('delete from posts where author = ?', (username,))
+				cur.execute('delete from comments where author = ?', (username,))
+				cur.execute('delete from messages where sender = ?', (username,))
+				conn.commit()
+
+			def warn(username, reason):
+				if self.user.username != 'moderator':
+					return
+				send_notification(username, 'You were given a warning by the moderator', reason)
 
 			def log_write(text):
 				log(text)
@@ -369,11 +462,17 @@ def main_page_wrap(html):
 
 class Root(object):
 	index = index_static('index.html')
-	messages = index_static('messages.html', True)
+	#messages = index_static('messages.html', True)
 	forum = index_static('forum.html', True)
 	settings = index_static('settings.html', True)
 	about = index_static('about.html')
 	help = index_static('help.html')
+	admin = index_static('admin-panel.html', True)
+
+	@cp.expose(['messages'])
+	@login_required
+	def messages(self, **params):
+		return cp.lib.static.serve_file(cwd + '/static/messages.html')
 
 	@cp.expose
 	def register(self, **form):
@@ -508,4 +607,14 @@ cfg = {
 }
 
 if __name__ == '__main__':
+	def debug():
+		while True:
+			try:
+				print(eval(input('> ')))
+			except:
+				print_exc()
+	t = Thread(target=debug)
+	t.daemon = True
+	t.start()
+	cp.response.stream = True
 	cp.quickstart(Root(), '/', config=cfg)
