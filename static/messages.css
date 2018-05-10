@@ -1,11 +1,5 @@
 html, body, #wrapper {
 	overflow-x: hidden;
-	min-height: 100%;
-}
-
-#wrapper {
-	position: relative;
-	min-height: calc(100vh - 140px);
 }
 
 main {
@@ -84,20 +78,19 @@ main > div p.who {
 	-webkit-overflow-scrolling: touch;
 }
 
-main::before {
+#main-overlay {
 	position: fixed;
 	top: 0;
-	bottom: 0;
 	left: 0;
 	right: 0;
-	content: '';
+	height: 100%;
 	visibility: hidden;
 	opacity: 0;
 	background: black;
 	transition: opacity 0.2s ease-in, visibility 0.2s;
 }
 
-#conversation.active ~ main::before {
+#conversation.active ~ #main-overlay {
 	visibility: visible;
 	opacity: 0.3;
 	transition: opacity 0.2s ease-out, visibility 0.2s;
@@ -105,7 +98,7 @@ main::before {
 
 #conversation::after {
 	content: 'spacer'; /* empty text doesn't work */
-	height: 64px;
+	height: 79px;
 	margin: 0;
 	padding: 0;
 	float: left;
@@ -125,6 +118,9 @@ main::before {
 #conversation.active ~ main {
 	transform: translateX(-100px);
 	transition: transform 0.2s ease-out;
+	overflow: hidden;
+	-webkit-overflow-scrolling: auto;
+	position: fixed;
 }
 
 #conversation > div.message {
@@ -164,12 +160,22 @@ main::before {
 	transition: none !important;
 }
 
-#bottom-bar {
+#bottom-bar-container {
+	position: fixed;
 	z-index: 2;
-	position: absolute;
 	left: 0;
 	right: 0;
 	bottom: 0;
+	overflow-x: hidden;
+	height: 69px;
+}
+
+#bottom-bar {
+	z-index: 2;
+	position: fixed;
+	left: 15px;
+	right: 15px;
+	bottom: 15px;
 	display: flex;
 	flex-direction: row;
 	justify-content: space-between;
@@ -178,7 +184,7 @@ main::before {
 	transform: translateX(100vw);
 }
 
-#conversation.active ~ #bottom-bar {
+#conversation.active ~ #bottom-bar-container #bottom-bar {
 	transform: translateX(0);
 	transition: transform 0.2s ease-out;
 }
@@ -188,8 +194,8 @@ main::before {
 	height: 54px;
 	margin: 0;
 	flex: 1;
-	/*border-top-left-radius: 9999px;*/
-	/*border-bottom-left-radius: 9999px;*/
+	border-top-left-radius: 3px;
+	border-bottom-left-radius: 3px;
 	padding-left: 18px;
 	border: none;
 	background: var(--bkg-secondary);
@@ -202,8 +208,8 @@ main::before {
 #bottom-bar span {
 	height: 54px;
 	width: 54px;
-	/*border-top-right-radius: 9999px;*/
-	/*border-bottom-right-radius: 9999px;*/
+	border-top-right-radius: 3px;
+	border-bottom-right-radius: 3px;
 	text-align: center;
 	background: var(--accent-light);
 	box-sizing: border-box;
@@ -224,6 +230,8 @@ main::before {
 
 #bottom-bar span#send-image {
 	background: var(--bkg-tertiary);
+	border-radius: 9999px;
+	margin-right: 10px;
 }
 
 #bottom-bar span#send-image:active, #bottom-bar span#send-image.held-down {
@@ -237,6 +245,7 @@ main::before {
 }
 
 #plus {
+	z-index: 3;
 	transform: translate(-25%, -25%) scale(1);
 	opacity: 1;
 	min-width: 57px;

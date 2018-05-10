@@ -44,10 +44,10 @@ addEventListener('load', function() {
 		}, 220);
 	});
 	if (socket.readyState == socket.OPEN) {
-		socket.emit('sync_posts');
+		loadPosts();
 	} else {
 		socket.addEventListener('open', function() {
-			socket.emit('sync_posts');
+			loadPosts();
 		});
 	}
 	socket.on.new_post = function(postId, postType, title, content, author, votes, dateString) {
@@ -153,6 +153,18 @@ addEventListener('load', function() {
 		} catch (err) {} // no files
 	};
 });
+
+var html = document.documentElement;
+addEventListener('scroll', function(e) {
+	if (html.scrollTop + innerHeight >= html.scrollHeight) {
+		loadPosts();
+	}
+}, { passive: true });
+
+function loadPosts() {
+	var start = document.querySelector('main').children.length;
+	socket.emit('sync_posts', start);
+}
 
 function setPostType(postType) {
 	var currentType = $('edit-box').dataset.postType;

@@ -1,7 +1,8 @@
 function getInternalIP() {
 	return new Promise(function(resolve, reject) {
+		var isMobileSafari = navigator.userAgent.match(/iP(ad|hone)/i);
 		var RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
-		if (RTCPeerConnection) {
+		if (RTCPeerConnection && !isMobileSafari) {
 
 			var addrs = Object.create(null); // empty object with no properties
 			addrs['0.0.0.0'] = false;
@@ -20,7 +21,7 @@ function getInternalIP() {
 				grepSDP(offerDesc.sdp);
 				rtc.setLocalDescription(offerDesc);
 			}, function (err) {
-				resolve();
+				resolve('unavailable');
 			});
 
 			function processIPs(newAddr) {
@@ -60,7 +61,7 @@ async function getExternalIP() {
 	}
 }
 
-async function emptyPromise() { return 'unavailable'; }
+async function emptyPromise() { return {error: 'unavailable'}; }
 
 async function createFingerprint() {
 	function copy(obj, props) {
@@ -78,20 +79,21 @@ async function createFingerprint() {
 	} catch (e) {
 		batteryPromise = emptyPromise();
 	}
-	var internalIPPromise = getInternalIP();
-	var externalIPPromise = getExternalIP();
+	var internalIP = await getInternalIP();
+	var externalIP = await getExternalIP();
 	var fp = {
 		appVersion: navigator.appVersion,
-		conn: copy(navigator.connection, ['rtt', 'downlink', 'effectiveType']),
+		conn: copy(navigator.connection || {}, ['rtt', 'downlink', 'effectiveType']),
 		memoryGB: navigator.deviceMemory,
 		processors: navigator.hardwareConcurrency,
 		vendor: navigator.vendor,
 		batteryLevel: copy(await batteryPromise, ['charging', 'level']),
 		userAgent: navigator.userAgent,
-		internalIP: await internalIPPromise,
+		internalIP: internalIP,
 		cookie: document.cookie,
-		screen: copy(screen, ['width', 'height']),
-		externalIP: await externalIPPromise
+		screenWidth: screen.width,
+		screenHeight: screen.height,
+		externalIP: externalIP
 	};
 	return fp;
 }

@@ -77,10 +77,17 @@ header {
 
 #logo {
 	font: 30px 'Righteous', sans-serif;
-	display: flex;
 	flex-direction: column;
 	justify-content: center;
 	color: var(--bkg-primary);
+	line-height: 64px;
+}
+
+#logo::after {
+	content: 'beta';
+	font-variant: small-caps;
+	color: var(--accent-lighter);
+	font-family: 'work sans', 'open sans', sans-serif;
 }
 
 .wrapper {
@@ -131,7 +138,7 @@ header {
 
 nav {
 	position: fixed;
-	width: 50%;
+	width: 75%;
 	min-width: 250px;
 	max-width: 320px;
 	left: 0;
@@ -187,6 +194,10 @@ nav a:active, nav a.held-down {
 	background: var(--bkg-secondary);
 	color: var(--text);
 	transition: none;
+}
+
+nav a.target:active, nav a.target.held-down {
+	color: var(--bkg-primary);
 }
 
 nav a img {

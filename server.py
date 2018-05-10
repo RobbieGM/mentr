@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
 # TODO:
-# Test friend posting notifications (mostly done)
-# Infinite scroll, rather than showing EVERY POST AT ONCE
-# Post sorting by newest first (oldest first is default)
-# Be able to remove friends
-# Remove EXIF data from images (iPhone images are sideways)
+# 1strachp1 should be legal email
+# about page
+# feedback page
+
+# Remember, for production: enable global caching even those it causes the infamous login bug in development
 
 import cherrypy as cp
+from cherrypy.lib.static import serve_file
 from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
 from ws4py.websocket import WebSocket, EchoWebSocket
 from os import getcwd
@@ -229,8 +230,9 @@ class MainWebSocket(WebSocket, metaclass=InstanceUnifier):
 				dispatch_event('friend_post', 'all', self.user.username, name=self.user.username, post_title=title, post_content=content)
 
 			@db_synchronized
-			def sync_posts():
-				cur.execute('select * from posts')
+			def sync_posts(offset):
+				POSTS_PER_LOAD = 5
+				cur.execute(f'select * from posts order by id desc limit {POSTS_PER_LOAD} offset {offset}')
 				no_posts = True
 				for post_id, post_type, title, content, author, votes, datestring, is_flagged in cur:
 					self.emit('new_post', post_id, post_type, title, content, username_linkify(author), votes, datestring)
@@ -322,6 +324,21 @@ class MainWebSocket(WebSocket, metaclass=InstanceUnifier):
 					friends_csv = list_to_csv(friends)
 					cur.execute('update accounts set friends_csv = ? where username = ?', (friends_csv, self.user.username))
 					conn.commit()
+					return
+
+			@db_synchronized
+			def remove_friend(friend_name):
+				cur.execute('select friends_csv from accounts where username = ?', (self.user.username,))
+				for (friends_csv,) in cur:
+					friends = csv_to_list(friends_csv)
+					try:
+						friends.remove(friend_name)
+					except ValueError:
+						self.emit('toast', 'That person is already unfriended')
+					friends_csv = list_to_csv(friends)
+					cur.execute('update accounts set friends_csv = ? where username = ?', (friends_csv, self.user.username))
+					conn.commit()
+					self.emit('toast', f'{friend_name} removed from friends')
 					return
 
 			@db_synchronized
@@ -447,11 +464,11 @@ def index_static(f, require_login=False):
 		@cp.expose
 		@login_required
 		def wrapper(self, **params):
-			return cp.lib.static.serve_file(cwd + '/static/' + f)
+			return serve_file(cwd + '/index/' + f)
 	else:
 		@cp.expose
 		def wrapper(self, **params):
-			return cp.lib.static.serve_file(cwd + '/static/' + f)
+			return serve_file(cwd + '/index/' + f)
 	return wrapper
 
 username_linkify = lambda username: f'<a href="/profile/{username}">{username}</a>'
@@ -462,36 +479,40 @@ def main_page_wrap(html):
 
 class Root(object):
 	index = index_static('index.html')
-	#messages = index_static('messages.html', True)
+	messages = index_static('messages.html', True)
 	forum = index_static('forum.html', True)
 	settings = index_static('settings.html', True)
 	about = index_static('about.html')
 	help = index_static('help.html')
 	admin = index_static('admin-panel.html', True)
 
-	@cp.expose(['messages'])
-	@login_required
-	def messages(self, **params):
-		return cp.lib.static.serve_file(cwd + '/static/messages.html')
-
 	@cp.expose
 	def register(self, **form):
+		@db_synchronized
+		def user_exists(username):
+			cur.execute('select username from accounts where username = ?', (username,))
+			return cur.fetchone()
+
 		if cp.request.method == 'GET':
-			return cp.lib.static.serve_file(cwd + '/static/register.html')
+			return serve_file(cwd + '/index/register.html')
 		elif cp.request.method == 'POST':
 			success = not (form['first-name'].isspace() or form['last-name'].isspace()) and len(form['graduation-year']) == 4 and form['graduation-year'][3].isdigit()
 			if success:
 				username = form['graduation-year'][3] + form['last-name'][:6] + form['first-name'][0]
+				ends_with_digit = 'ends-with-digit' in form
+				if ends_with_digit:
+					username += form['graduation-year'][3]
 				username = username.lower()
 				email = username + '@chelsea.k12.mi.us'
-
+				if user_exists(username):
+					return main_page_wrap('<h1>Failure</h1><p>An account with that username already exists.</p>')
 				key = str(uuid4())
 				verification_link = 'http://0.0.0.0/verify?key=' + key
 
-				cur.execute('insert into accounts values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (username, email, form['first-name'], form['last-name'], None, key, 0, 'This user doesn\'t have a profile description yet.', 'moderator', 'friend_post,mention,comment'))
-				conn.commit()
+#				cur.execute('insert into accounts values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) where username', (username, email, form['first-name'], form['last-name'], None, key, 0, 'This user doesn\'t have a profile description yet.', 'moderator', 'friend_post,mention,comment'))
+#				conn.commit()
 
-				send_html_file(email, 'Mentr Verification', cwd + '/verification-email.html', first_name=form['first-name'], verification_link=verification_link)
+#				send_html_file(email, 'Mentr Verification', cwd + '/verification-email.html', first_name=form['first-name'], verification_link=verification_link)
 				return main_page_wrap('<h1>Success</h1><p>Check your school email (' + email + ') for a verification link.</p>')
 			else:
 				return main_page_wrap('<h1>Invalid Input</h1><p>Your form inputs didn\'t make sense to us. Please try again.</p>')
@@ -499,7 +520,7 @@ class Root(object):
 	@cp.expose
 	def login(self, **form):
 		if cp.request.method == 'GET':
-			return cp.lib.static.serve_file(cwd + '/static/login.html')
+			return serve_file(cwd + '/index/login.html')
 		elif cp.request.method == 'POST':
 			username = form['username']
 			password = form['password']
@@ -516,6 +537,16 @@ class Root(object):
 				raise cp.HTTPRedirect('/forum')
 
 	@cp.expose
+	def help(self, **form):
+		if cp.request.method == 'GET':
+			return serve_file(cwd + '/index/help.html')
+		elif cp.request.method == 'POST':
+			with db_lock:
+				cur.execute('insert into feedback values (?)', (form['feedback'],))
+				conn.commit()
+			return main_page_wrap('<h1>Thank You</h1><p>Your feedback is greatly appreciated.</p>')
+
+	@cp.expose
 	@login_required
 	def profile(self, *args, **query_params):
 		client_username = users[cp.request.cookie['session_id'].value].username
@@ -524,20 +555,30 @@ class Root(object):
 		except IndexError:
 			username = client_username
 		
+		with db_lock:
+			cur.execute('select friends_csv from accounts where username = ?', (client_username,))
+			client_friends = cur.fetchone()[0].split(',')
+
 		editable = username == client_username
 		EDIT_BUTTON = '<button onclick="edit()">Edit Profile</button>' if editable else ''
-		ADD_FRIEND_BUTTON = '<button onclick="addFriend()">Add Friend</a>' if not editable else ''
+		if not editable:
+			if not username in client_friends:
+				ADD_FRIEND_BUTTON = '<button onclick="addFriend()">Add Friend</a>'
+			else:
+				ADD_FRIEND_BUTTON = '<button onclick="removeFriend()">Remove Friend</a>'
+		else:
+			ADD_FRIEND_BUTTON = ''
 
 		cur.execute('select profile_description from accounts where username = ?', (username,))
 		for (profile_description,) in cur: # should only run once
-			return open(cwd + '/static/profile.html').read().format(username=username, profile_description=profile_description, edit_button_if_needed=EDIT_BUTTON, add_friend_button_if_needed=ADD_FRIEND_BUTTON)
+			return open(cwd + '/index/profile.html').read().format(username=username, profile_description=profile_description, edit_button_if_needed=EDIT_BUTTON, add_friend_button_if_needed=ADD_FRIEND_BUTTON)
 
-		return cp.lib.static.serve_file(cwd + '/static/nonexistent_profile.html')
+		return serve_file(cwd + '/static/nonexistent_profile.html')
 
 	@cp.expose
 	def verify(self, **query_params):
 		if cp.request.method == 'GET':
-			return cp.lib.static.serve_file(cwd + '/static/account-setup.html')
+			return serve_file(cwd + '/index/account-setup.html')
 		elif cp.request.method == 'POST':
 			key = query_params['key']
 			password = query_params['password']
@@ -561,7 +602,7 @@ class Root(object):
 		return vpath
 
 def error_404(status, message, traceback, version):
-	return cp.lib.static.serve_file(cwd + '/static/error_404.html')
+	return serve_file(cwd + '/static/error_404.html')
 
 WebSocketPlugin(cp.engine).subscribe()
 cp.tools.websocket = WebSocketTool()
@@ -591,8 +632,11 @@ cfg = {
 		'server.socket_host': '0.0.0.0',
 		'server.socket_port': 8080,
 		'log.screen': True,
-		'tools.caching.on': True,
+		'tools.caching.on': False,
+		'tools.expires.on': False,
 		'tools.gzip.on': True,
+		'engine.autoreload.on': False,
+		'server.shutdown_timeout': 1,
 	},
 	'/socket': {
 		'tools.websocket.on': True,
